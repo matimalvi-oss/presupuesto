@@ -640,8 +640,8 @@
     document.documentElement.style.setProperty('--color-secondary-dark', shadeColor(EMPRESA.colorSecondary, 15));
     document.getElementById('themeColorMeta').setAttribute('content', EMPRESA.colorPrimary);
 
-    document.getElementById('headerCompanyName').textContent = EMPRESA.nombre || 'Presupuesto Eléctrico';
-    document.getElementById('headerCompanySlogan').textContent = EMPRESA.slogan || 'Mano de Obra VAROMA';
+    document.getElementById('headerCompanyName').textContent = EMPRESA.nombre || 'VAROMA';
+    document.getElementById('headerCompanySlogan').textContent = EMPRESA.slogan || 'Mano de obra';
 
     const logoDiv = document.getElementById('headerLogo');
     if (EMPRESA.logo) {
@@ -930,8 +930,7 @@
     reader.readAsText(file);
   }
 
-  // ============ ACCESO SECRETO AL ADMIN ============
-  // Opción 1: Ctrl + Shift + A (en PC)
+
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
       e.preventDefault();
@@ -939,20 +938,7 @@
     }
   });
 
-  // Opción 2: Triple clic en el logo (PC y celular)
-  let logoClicks = 0;
-  let logoClickTimer = null;
-  document.getElementById('headerLogo').addEventListener('click', () => {
-    logoClicks++;
-    if (logoClicks >= 3) {
-      abrirAdmin();
-      logoClicks = 0;
-      clearTimeout(logoClickTimer);
-    } else {
-      clearTimeout(logoClickTimer);
-      logoClickTimer = setTimeout(() => { logoClicks = 0; }, 600);
-    }
-  });
+ 
 
   // Inicialización
   aplicarConfigEmpresa();
