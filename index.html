@@ -610,17 +610,13 @@
   let db = null;
   let firebaseDisponible = false;
   try {
-    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyCR8Ldqs-3LcE9X5Wr74I2z_j0tb0E_Cj8") {
-      firebase.initializeApp(firebaseConfig);
-      db = firebase.firestore();
-      firebaseDisponible = true;
-      console.log('✅ Firebase conectado');
-    } else {
-      console.warn('⚠️ Firebase no configurado. Usá el panel admin para configurar o editá firebaseConfig en el código.');
-    }
-  } catch (err) {
-    console.error('❌ Error Firebase:', err);
-  }
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  firebaseDisponible = true;
+  console.log('✅ Firebase conectado');
+} catch (err) {
+  console.error('❌ Error Firebase:', err);
+}
 
   // ============ DATOS DE EMPRESA ============
   const EMPRESA_DEFAULT = {
