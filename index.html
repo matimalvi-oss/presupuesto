@@ -475,6 +475,15 @@
       <div class="field"><label>Pilastra <span class="price-hint" data-price="pilar"></span></label><input type="number" id="pilar" value="0" min="0"><span class="subtotal" id="st_pilar">$0</span></div>
     </div>
 
+    <!-- OBSERVACIONES DEL CLIENTE -->
+    <div class="section" style="border-left-color:#2196f3">
+      <h2>💬 Observaciones</h2>
+      <div class="field" style="flex-direction:column;align-items:stretch">
+        <label style="min-width:auto;margin-bottom:8px">Escribí cualquier observación, detalle o requerimiento especial para este presupuesto:</label>
+        <textarea id="observaciones" placeholder="Ej: Se requiere trabajo en horario nocturno, el cliente pide que se respeten las plantas del jardín, hay que coordinar con el vecino, etc." style="width:100%;min-height:100px;padding:12px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:0.95em;resize:vertical"></textarea>
+      </div>
+    </div>
+    
     <!-- TOTALES -->
     <div class="total-box">
       <div class="label">TOTAL PRESUPUESTO</div>
@@ -817,7 +826,16 @@
       html += `<h2>🔧 Mano de Obra</h2>
         <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasMO}</tbody></table>`;
     }
-
+    
+    // Observaciones del cliente
+    const observaciones = document.getElementById('observaciones').value.trim();
+    if (observaciones) {
+      html += `<div style="margin-top:20px;padding:15px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:6px">
+        <h3 style="color:#e65100;margin-bottom:8px;font-size:1em"> Observaciones del cliente</h3>
+        <p style="white-space:pre-wrap;color:#333;font-size:0.9em;line-height:1.5">${observaciones.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+      </div>`;
+    }
+    
     html += `<div class="total-final">TOTAL: ${fmt(totalMO)}</div>`;
     html += `<div class="print-footer">
       <p>Presupuesto válido por 15 días.</p>
