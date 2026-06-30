@@ -548,7 +548,7 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn-send" onclick="enviarPresupuesto()">📤 Enviar Presupuesto</button>
+      <button class="btn-send" onclick="enviarPresupuesto()">📤 Solicitar Presupuesto</button>
       <button class="btn-print" onclick="imprimir()">🖨️ Imprimir / PDF</button>
       <button class="btn-view" onclick="verMisPresupuestos()"> Mis Presupuestos</button>
       <button class="btn-admin no-print" id="btnAdmin" onclick="abrirAdmin()" style="display:none">⚙️ Admin</button>
@@ -1109,50 +1109,55 @@
   }
 
   // ============ ENVIAR PRESUPUESTO ============
-  async function enviarPresupuesto() {
-    const cliente = document.getElementById('clienteNombre').value.trim();
-    const tel = document.getElementById('clienteTel').value.trim();
+async function enviarPresupuesto() {
+  const cliente = document.getElementById('clienteNombre').value.trim();
+  const tel = document.getElementById('clienteTel').value.trim();
 
-    if (!cliente) { alert('⚠️ Por favor ingresá tu nombre'); document.getElementById('clienteNombre').focus(); return; }
-    if (!tel) { alert('⚠️ Por favor ingresá tu teléfono'); document.getElementById('clienteTel').focus(); return; }
+  if (!cliente) { alert('⚠️ Por favor ingresá tu nombre'); document.getElementById('clienteNombre').focus(); return; }
+  if (!tel) { alert('⚠️ Por favor ingresá tu teléfono'); document.getElementById('clienteTel').focus(); return; }
 
-    const total = parseInt(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
-    if (total === 0) { if (!confirm('No seleccionaste ningún servicio. ¿Enviar igual?')) return; }
+  const total = parseInt(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
+  if (total === 0) { if (!confirm('No seleccionaste ningún servicio. ¿Enviar igual?')) return; }
 
-    const datos = {
-      clienteNombre: cliente,
-      clienteDireccion: document.getElementById('clienteDireccion').value,
-      clienteTel: tel,
-      clienteEmail: document.getElementById('clienteEmail').value,
-      observaciones: document.getElementById('observaciones').value,
-      campos: {},
-      total: total,
-      fechaCreacion: new Date().toISOString(),
-      estado: 'pendiente',
-      version: VERSION,
-      userId: esInvitado ? 'invitado_' + generarId() : currentUser.uid,
-      userEmail: esInvitado ? 'invitado@temp.com' : currentUser.email
-    };
+  // Generar userId único para invitados
+  const userId = esInvitado ? 'invitado_' + generarId() + '_' + Date.now() : (currentUser ? currentUser.uid : 'anonimo_' + Date.now());
 
-    for (const key in PRECIOS) {
-      const input = document.getElementById(key);
-      if (input) {
-        datos.campos[key] = input.type === 'checkbox' ? input.checked : input.value;
-      }
-    }
+  const datos = {
+    clienteNombre: cliente,
+    clienteDireccion: document.getElementById('clienteDireccion').value,
+    clienteTel: tel,
+    clienteEmail: document.getElementById('clienteEmail').value,
+    observaciones: document.getElementById('observaciones').value,
+    campos: {},
+    total: total,
+    fechaCreacion: new Date().toISOString(),
+    estado: 'pendiente',
+    version: VERSION,
+    userId: userId,
+    userEmail: esInvitado ? 'invitado@temp.com' : (currentUser ? currentUser.email : 'anonimo@temp.com'),
+    esInvitado: esInvitado
+  };
 
-    const id = generarId();
-    datos.id = id;
-
-    try {
-      await db.collection('presupuestos').doc(id).set(datos);
-      alert(`✅ ¡Presupuesto enviado correctamente!\n\nID: ${id}\n\nNos pondremos en contacto contigo a la brevedad.\n\nGracias por confiar en ${EMPRESA.nombre || 'VAROMA'}`);
-      limpiar();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) {
-      alert('❌ Error al enviar: ' + err.message);
+  for (const key in PRECIOS) {
+    const input = document.getElementById(key);
+    if (input) {
+      datos.campos[key] = input.type === 'checkbox' ? input.checked : input.value;
     }
   }
+
+  const id = generarId();
+  datos.id = id;
+
+  try {
+    await db.collection('presupuestos').doc(id).set(datos);
+    alert(`✅ ¡Presupuesto enviado correctamente!\n\nID: ${id}\n\nNos pondremos en contacto contigo a la brevedad.\n\nGracias por confiar en ${EMPRESA.nombre || 'VAROMA'}`);
+    limpiar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    console.error('Error al enviar:', err);
+    alert('❌ Error al enviar: ' + err.message);
+  }
+}
 
   // ============ ADMIN: VER TODOS LOS PRESUPUESTOS ============
   async function abrirAdmin() {
