@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff9800" id="themeColorMeta">
+<title>Presupuesto Eléctrico</title>
+<style>
+  :root {
+    --color-primary: #ff9800;
+    --color-primary-dark: #f57c00;
+    --color-secondary: #1e3c72;
+    --color-secondary-dark: #2a5298;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: white;
+    padding: 25px;
+    text-align: center;
+    position: relative;
+  }
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .company-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+    cursor: default;
+  }
+  .company-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .company-logo .placeholder {
+    font-size: 2.5em;
+    color: var(--color-primary);
+  }
+  .company-info { text-align: left; flex: 1; min-width: 200px; }
+  .company-info h1 { font-size: 1.5em; margin-bottom: 3px; }
+  .company-info p { font-size: 0.85em; opacity: 0.95; }
+  .version-tag {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255,255,255,0.25);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75em;
+  }
+  .content { padding: 25px; }
+  .section {
+    background: #f8f9fa;
+    border-left: 4px solid var(--color-primary);
+    padding: 18px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+  }
+  .section h2 {
+    color: var(--color-secondary);
+    font-size: 1.15em;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+  }
+  .field label {
+    flex: 1;
+    min-width: 200px;
+    font-size: 0.95em;
+    color: #444;
+  }
+  .field .price-hint {
+    font-size: 0.8em;
+    color: #888;
+    margin-left: 5px;
+  }
+  .field input, .field select, .field textarea {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    min-width: 100px;
+    font-family: inherit;
+  }
+  .field input[type="number"] { width: 80px; }
+  .field input[type="text"], .field input[type="email"], .field input[type="tel"], .field textarea { flex: 1; min-width: 150px; }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .subtotal {
+    font-weight: bold;
+    color: var(--color-secondary);
+    min-width: 110px;
+    text-align: right;
+  }
+
+  .total-box {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .total-box .label { font-size: 1em; opacity: 0.9; }
+  .total-box .amount { font-size: 2.5em; font-weight: bold; margin-top: 8px; }
+  .total-breakdown {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .total-breakdown .part { text-align: center; }
+  .total-breakdown .part .lbl { font-size: 0.8em; opacity: 0.8; }
+  .total-breakdown .part .val { font-size: 1.3em; font-weight: bold; }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    justify-content: center;
+  }
+  button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-calc { background: #4caf50; color: white; }
+  .btn-print { background: #2196f3; color: white; }
+  .btn-clear { background: #f44336; color: white; }
+  .btn-admin { background: #673ab7; color: white; }
+  .btn-secondary { background: #607d8b; color: white; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .modal-header {
+    background: linear-gradient(135deg, #673ab7, #512da8);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .modal-header h2 { font-size: 1.3em; }
+  .close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    cursor: pointer;
+  }
+  .modal-body { padding: 25px; }
+  .admin-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+    border-radius: 0;
+  }
+  .tab-btn.active { color: #673ab7; border-bottom-color: #673ab7; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .price-editor {
+    display: grid;
+    grid-template-columns: 1fr 150px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .price-editor:hover { background: #f8f9fa; }
+  .price-editor label { font-size: 0.9em; color: #444; }
+  .price-editor input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: right;
+  }
+  .search-box {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    margin-bottom: 15px;
+  }
+  .alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+  }
+  .alert-info { background: #e3f2fd; color: #1565c0; border-left: 4px solid #1976d2; }
+  .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; }
+  .alert-warning { background: #fff3e0; color: #e65100; border-left: 4px solid #fb8c00; }
+
+  /* Configuración de marca */
+  .logo-upload-area {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .logo-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    background: white;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .logo-preview .placeholder {
+    color: #999;
+    font-size: 0.85em;
+    text-align: center;
+    padding: 10px;
+  }
+  .logo-controls { flex: 1; min-width: 200px; }
+  .logo-controls p { font-size: 0.85em; color: #666; margin-bottom: 10px; }
+
+  .color-picker-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  .color-picker-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  .color-picker-item label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #444;
+    font-size: 0.9em;
+  }
+  .color-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .color-input-wrapper input[type="color"] {
+    width: 50px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .color-input-wrapper input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+
+  .print-area { display: none; }
+  @media print {
+    body { background: white; padding: 0; }
+    .no-print { display: none !important; }
+    .print-area { display: block; padding: 20px; }
+    .print-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid var(--color-primary);
+      margin-bottom: 20px;
+    }
+    .print-header img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    .print-header .ph-info h1 {
+      color: var(--color-secondary);
+      font-size: 1.5em;
+      margin-bottom: 3px;
+    }
+    .print-header .ph-info p {
+      font-size: 0.85em;
+      color: #555;
+      margin: 2px 0;
+    }
+    .print-area h2 {
+      color: var(--color-secondary);
+      margin-top: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .print-area th, .print-area td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+    .print-area th { background: #f0f0f0; }
+    .print-area .total-final {
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--color-secondary);
+      color: white;
+      font-size: 1.3em;
+      text-align: right;
+      border-radius: 6px;
+    }
+    .print-area .total-breakdown-print {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+    .print-footer {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+      font-size: 0.8em;
+      color: #666;
+      text-align: center;
+    }
+  }
+  @media (max-width: 600px) {
+    .field { flex-direction: column; align-items: stretch; }
+    .field .subtotal { text-align: left; }
+    .total-box .amount { font-size: 1.8em; }
+    .price-editor { grid-template-columns: 1fr; }
+    .color-picker-row { grid-template-columns: 1fr; }
+    .header-content { flex-direction: column; text-align: center; }
+    .company-info { text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="container no-print">
+  <header>
+    <div class="header-content">
+      <div class="company-logo" id="headerLogo">
+        <div class="placeholder">⚡</div>
+      </div>
+      <div class="company-info">
+        <h1 id="headerCompanyName">Presupuesto Eléctrico</h1>
+        <p id="headerCompanySlogan">Mano de Obra VAROMA</p>
+      </div>
+    </div>
+    <div class="version-tag" id="versionTag">Junio 2026</div>
+  </header>
+
+  <div class="content">
+    <!-- DATOS CLIENTE -->
+    <div class="section">
+      <h2>👤 Datos del Cliente</h2>
+      <div class="field"><label>Nombre del cliente:</label><input type="text" id="clienteNombre"></div>
+      <div class="field"><label>Dirección de obra:</label><input type="text" id="clienteDireccion"></div>
+      <div class="field"><label>Teléfono:</label><input type="text" id="clienteTel"></div>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <div class="section">
+      <h2>🔧 Mantenimiento</h2>
+      <div class="field"><label>Visita ocular </label><label>Sin costo</label></div>
+      <div class="field"><label>Visita básica (mínimo) <span class="price-hint" data-price="visita"></span></label><input type="number" id="visita" value="0" min="0"><span class="subtotal" id="st_visita">$0</span></div>
+      <div class="field"><label>Visita básica de urgencia (De lunes a viernes a partir de 20:00hs; sábados, domingos y feriados las 24hs) <span class="price-hint" data-price="urgencia"></span></label><input type="number" id="urgencia" value="0" min="0"><span class="subtotal" id="st_urgencia">$0</span></div>
+      <div class="field"><label>Cableado o recableado (sin canalización) por boca <span class="price-hint" data-price="cabNuevo1"></span></label><input type="number" id="cabNuevo1" value="0" min="0"><span class="subtotal" id="st_cabNuevo1">$0</span></div>
+    </div>
+
+    <!-- OBRA -->
+    <div class="section">
+      <h2>🏗️ Obra</h2>
+      <div class="field"><label>Visita ocular </label><label>Sin costo</label></div>
+      <div class="field"><label>Boca embutida <span class="price-hint" data-price="bocaEmb"></span></label><input type="number" id="bocaEmb" value="0" min="0"><span class="subtotal" id="st_bocaEmb">$0</span></div>
+      <div class="field"><label>Boca vista <span class="price-hint" data-price="bocaVis"></span></label><input type="number" id="bocaVis" value="0" min="0"><span class="subtotal" id="st_bocaVis">$0</span></div>
+      <div class="field"><label>Presupuesto de materiales y croquis (se descuenta del costo de mano de obra)  <span class="price-hint" data-price="materialesPresupuesto"></span></label><input type="number" id="materialesPresupuesto" value="0" min="0"><span class="subtotal" id="st_materialesPresupuesto">$0</span></div>
+      <div class="field"><label>Tablero Monofásico (1 ID + 1 TM) <span class="price-hint" data-price="tpMono"></span></label><input type="number" id="tpMono" value="0" min="0"><span class="subtotal" id="st_tpMono">$0</span></div>
+      <div class="field"><label>Zanjeado por metro lineal (Tierra) <span class="price-hint" data-price="subTierra"></span></label><input type="number" id="subTierra" value="0" min="0"><span class="subtotal" id="st_subTierra">$0</span></div>
+      <div class="field"><label>Zanjeado por metro lineal (Hormigón) <span class="price-hint" data-price="subPiso"></span></label><input type="number" id="subPiso" value="0" min="0"><span class="subtotal" id="st_subPiso">$0</span></div>
+      <div class="field"><label>Colocación de artefacto simple <span class="price-hint" data-price="aplSimple"></span></label><input type="number" id="aplSimple" value="0" min="0"><span class="subtotal" id="st_aplSimple">$0</span></div>
+      <div class="field"><label>Colocación de artefacto complejo (precio base) <span class="price-hint" data-price="aplComple"></span></label><input type="number" id="aplComple" value="0" min="0"><span class="subtotal" id="st_aplComple">$0</span></div>
+      <div class="field"><label>Pilastra <span class="price-hint" data-price="pilar"></span></label><input type="number" id="pilar" value="0" min="0"><span class="subtotal" id="st_pilar">$0</span></div>
+    </div>
+
+    <!-- TOTALES -->
+    <div class="total-box">
+      <div class="label">TOTAL PRESUPUESTO</div>
+      <div class="amount" id="total">$0</div>
+      <div class="total-breakdown">
+        <div class="part"><div class="lbl">🔧 Mano de Obra</div><div class="val" id="totalMO">$0</div></div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-calc" onclick="calcular()">🧮 Calcular</button>
+      <button class="btn-print" onclick="imprimir()">🖨️ Imprimir / PDF</button>
+      <!-- ============================================================ -->
+      <!-- BOTÓN ADMIN OCULTO                                             -->
+      <!-- Para REACTIVARLO como botón visible:                           -->
+      <!--   1. Borrá las dos líneas de comentario (<!-- y -->)           -->
+      <!--   2. Guardá el archivo                                         -->
+      <!-- Mientras tanto, se puede acceder con:                          -->
+      <!--   • Ctrl + Shift + A  (en PC)                                  -->
+      <!--   • Triple clic en el logo de la empresa                       -->
+      <!-- ============================================================ -->
+      <!-- <button class="btn-admin" onclick="abrirAdmin()">⚙️ Admin</button> -->
+      <button class="btn-clear" onclick="limpiar()">🗑️ Limpiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚙️ Panel de Administración</h2>
+      <button class="close-btn" onclick="cerrarAdmin()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-tabs">
+        <button class="tab-btn active" onclick="cambiarTab(event,'tab-brand')">🏢 Mi Empresa</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-edit')">✏️ Mano de Obra</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-backup')">💾 Backup</button>
+      </div>
+
+      <!-- TAB: MI EMPRESA -->
+      <div class="tab-content active" id="tab-brand">
+        <div class="alert alert-info">🏢 Configurá los datos de tu empresa. Aparecerán en el presupuesto impreso.</div>
+
+        <h3 style="margin-bottom:10px;color:#444">🖼️ Logo</h3>
+        <div class="logo-upload-area">
+          <div class="logo-preview" id="logoPreview">
+            <div class="placeholder">Sin logo</div>
+          </div>
+          <div class="logo-controls">
+            <p>Subí tu logo (PNG, JPG, SVG). Se recomienda imagen cuadrada de al menos 200x200px.</p>
+            <input type="file" id="logoInput" accept="image/*" onchange="subirLogo(event)" style="margin-bottom:10px">
+            <br>
+            <button class="btn-secondary" style="padding:8px 14px;font-size:0.85em" onclick="quitarLogo()">🗑️ Quitar logo</button>
+          </div>
+        </div>
+
+        <h3 style="margin:20px 0 10px;color:#444">📝 Datos de la empresa</h3>
+        <div class="field"><label>Nombre de la empresa:</label><input type="text" id="empNombre" placeholder="Ej: Electricidad López SRL"></div>
+        <div class="field"><label>Eslogan / descripción corta:</label><input type="text" id="empSlogan" placeholder="Ej: Soluciones eléctricas profesionales"></div>
+        <div class="field"><label>CUIT:</label><input type="text" id="empCuit" placeholder="Ej: 30-12345678-9"></div>
+        <div class="field"><label>Dirección:</label><input type="text" id="empDireccion" placeholder="Ej: Av. Corrientes 1234, CABA"></div>
+        <div class="field"><label>Teléfono:</label><input type="tel" id="empTelefono" placeholder="Ej: +54 11 1234-5678"></div>
+        <div class="field"><label>Email:</label><input type="email" id="empEmail" placeholder="Ej: contacto@empresa.com"></div>
+        <div class="field"><label>Sitio web:</label><input type="text" id="empWeb" placeholder="Ej: www.empresa.com"></div>
+        <div class="field"><label>Instagram / Redes:</label><input type="text" id="empRedes" placeholder="Ej: @empresa.ok"></div>
+
+        <h3 style="margin:20px 0 10px;color:#444">🎨 Colores de marca</h3>
+        <div class="color-picker-row">
+          <div class="color-picker-item">
+            <label>Color principal (header, acentos)</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="colorPrimary" value="#ff9800" onchange="actualizarColor('primary', this.value)">
+              <input type="text" id="colorPrimaryText" value="#ff9800" onchange="actualizarColor('primary', this.value)">
+            </div>
+          </div>
+          <div class="color-picker-item">
+            <label>Color secundario (fondos, totales)</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="colorSecondary" value="#1e3c72" onchange="actualizarColor('secondary', this.value)">
+              <input type="text" id="colorSecondaryText" value="#1e3c72" onchange="actualizarColor('secondary', this.value)">
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-warning" style="font-size:0.85em">💡 Los colores se aplican en la app y en el PDF. Elegí colores con buen contraste para que se lea bien.</div>
+
+        <div class="btn-group">
+          <button class="btn-calc" onclick="guardarEmpresa()">💾 Guardar Configuración</button>
+          <button class="btn-secondary" onclick="restaurarEmpresa()">🔄 Restaurar por Defecto</button>
+        </div>
+      </div>
+
+      <!-- TAB: EDITAR PRECIOS -->
+      <div class="tab-content" id="tab-edit">
+        <div class="alert alert-warning">⚠️ Editá los precios de mano de obra.</div>
+        <input type="text" class="search-box" id="searchPrices" placeholder="🔍 Buscar concepto..." oninput="filtrarPrecios()">
+        <div id="priceList"></div>
+        <div class="btn-group" style="margin-top:20px">
+          <button class="btn-calc" onclick="guardarPrecios()">💾 Guardar Cambios</button>
+          <button class="btn-secondary" onclick="restaurarDefault()">🔄 Restaurar Valores por Defecto</button>
+        </div>
+      </div>
+
+      <!-- TAB: BACKUP -->
+      <div class="tab-content" id="tab-backup">
+        <div class="alert alert-info">💾 Exportá/importá toda tu configuración.</div>
+        <div class="field" style="background:#f8f9fa">
+          <label>Versión actual de tarifas:</label>
+          <input type="text" id="versionInput" placeholder="Ej: Junio 2026" style="flex:1">
+        </div>
+        <div class="btn-group" style="margin-top:20px">
+          <button class="btn-calc" onclick="exportarJSON()">📤 Exportar JSON</button>
+          <button class="btn-secondary" onclick="document.getElementById('jsonInput').click()">📥 Importar JSON</button>
+          <input type="file" id="jsonInput" accept=".json" style="display:none" onchange="importarJSON(event)">
+        </div>
+        <div id="backupLog" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="print-area" id="printArea"></div>
+
+<script>
+  // ============ DATOS DE EMPRESA ============
+  const EMPRESA_DEFAULT = {
+    nombre: 'Presupuesto Eléctrico',
+    slogan: 'Mano de Obra VAROMA',
+    cuit: '',
+    direccion: '',
+    telefono: '',
+    email: '',
+    web: '',
+    redes: '',
+    logo: '',
+    colorPrimary: '#ff9800',
+    colorSecondary: '#1e3c72'
+  };
+
+  let EMPRESA = JSON.parse(localStorage.getItem('empresaConfig')) || {...EMPRESA_DEFAULT};
+
+  // ============ PRECIOS MANO DE OBRA ============
+  const PRECIOS_DEFAULT = {
+    visita: 40000, urgencia: 80000, cabNuevo1: 20000,
+    bocaEmb: 40000, bocaVis: 35000, materialesPresupuesto: 20000,
+    subTierra: 10000, subPiso: 15000,
+    tpMono: 100000,
+    aplSimple: 10000, aplComple: 50000,
+    pilar: 300000,
+  };
+
+  let PRECIOS = JSON.parse(localStorage.getItem('preciosAAIERIC')) || {...PRECIOS_DEFAULT};
+  let VERSION = localStorage.getItem('versionAAIERIC') || 'Junio 2026';
+
+  const ETIQUETAS = {
+    visita: "Visita básica", urgencia: "Visita de urgencia", cabNuevo1: "Cableado/recableado por boca",
+    subTierra: "Zanjeo por metro - Tierra",
+    subPiso: "Zanjeo por metro - Hormigón",
+    tpMono: "Tablero Monofásico (1 ID + 1 TM)",
+    bocaEmb: "Boca embutida", bocaVis: "Boca vista",
+    materialesPresupuesto: "Presupuesto de materiales + croquis",
+    aplSimple: "Colocación artefacto simple", aplComple: "Colocación artefacto complejo",
+    pilar: "Pilastra",
+  };
+
+  // ============ FUNCIONES UTILITARIAS ============
+  function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+
+  // ============ CONFIGURACIÓN DE EMPRESA ============
+  function aplicarConfigEmpresa() {
+    document.documentElement.style.setProperty('--color-primary', EMPRESA.colorPrimary);
+    document.documentElement.style.setProperty('--color-primary-dark', shadeColor(EMPRESA.colorPrimary, -15));
+    document.documentElement.style.setProperty('--color-secondary', EMPRESA.colorSecondary);
+    document.documentElement.style.setProperty('--color-secondary-dark', shadeColor(EMPRESA.colorSecondary, 15));
+    document.getElementById('themeColorMeta').setAttribute('content', EMPRESA.colorPrimary);
+
+    document.getElementById('headerCompanyName').textContent = EMPRESA.nombre || 'Presupuesto Eléctrico';
+    document.getElementById('headerCompanySlogan').textContent = EMPRESA.slogan || 'Mano de Obra VAROMA';
+
+    const logoDiv = document.getElementById('headerLogo');
+    if (EMPRESA.logo) {
+      logoDiv.innerHTML = `<img src="${EMPRESA.logo}" alt="Logo">`;
+    } else {
+      logoDiv.innerHTML = '<div class="placeholder">⚡</div>';
+    }
+
+    document.getElementById('empNombre').value = EMPRESA.nombre || '';
+    document.getElementById('empSlogan').value = EMPRESA.slogan || '';
+    document.getElementById('empCuit').value = EMPRESA.cuit || '';
+    document.getElementById('empDireccion').value = EMPRESA.direccion || '';
+    document.getElementById('empTelefono').value = EMPRESA.telefono || '';
+    document.getElementById('empEmail').value = EMPRESA.email || '';
+    document.getElementById('empWeb').value = EMPRESA.web || '';
+    document.getElementById('empRedes').value = EMPRESA.redes || '';
+    document.getElementById('colorPrimary').value = EMPRESA.colorPrimary;
+    document.getElementById('colorPrimaryText').value = EMPRESA.colorPrimary;
+    document.getElementById('colorSecondary').value = EMPRESA.colorSecondary;
+    document.getElementById('colorSecondaryText').value = EMPRESA.colorSecondary;
+
+    const preview = document.getElementById('logoPreview');
+    if (EMPRESA.logo) {
+      preview.innerHTML = `<img src="${EMPRESA.logo}" alt="Logo">`;
+    } else {
+      preview.innerHTML = '<div class="placeholder">Sin logo</div>';
+    }
+  }
+
+  function shadeColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+  }
+
+  function subirLogo(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('⚠️ La imagen es muy grande. Máximo 2MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      EMPRESA.logo = ev.target.result;
+      document.getElementById('logoPreview').innerHTML = `<img src="${EMPRESA.logo}" alt="Logo">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function quitarLogo() {
+    EMPRESA.logo = '';
+    document.getElementById('logoPreview').innerHTML = '<div class="placeholder">Sin logo</div>';
+    document.getElementById('logoInput').value = '';
+  }
+
+  function actualizarColor(tipo, valor) {
+    if (!/^#[0-9A-Fa-f]{6}$/.test(valor)) return;
+    if (tipo === 'primary') {
+      EMPRESA.colorPrimary = valor;
+      document.getElementById('colorPrimary').value = valor;
+      document.getElementById('colorPrimaryText').value = valor;
+      document.documentElement.style.setProperty('--color-primary', valor);
+      document.documentElement.style.setProperty('--color-primary-dark', shadeColor(valor, -15));
+    } else {
+      EMPRESA.colorSecondary = valor;
+      document.getElementById('colorSecondary').value = valor;
+      document.getElementById('colorSecondaryText').value = valor;
+      document.documentElement.style.setProperty('--color-secondary', valor);
+      document.documentElement.style.setProperty('--color-secondary-dark', shadeColor(valor, 15));
+    }
+  }
+
+  function guardarEmpresa() {
+    EMPRESA.nombre = document.getElementById('empNombre').value.trim();
+    EMPRESA.slogan = document.getElementById('empSlogan').value.trim();
+    EMPRESA.cuit = document.getElementById('empCuit').value.trim();
+    EMPRESA.direccion = document.getElementById('empDireccion').value.trim();
+    EMPRESA.telefono = document.getElementById('empTelefono').value.trim();
+    EMPRESA.email = document.getElementById('empEmail').value.trim();
+    EMPRESA.web = document.getElementById('empWeb').value.trim();
+    EMPRESA.redes = document.getElementById('empRedes').value.trim();
+    localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+    aplicarConfigEmpresa();
+    alert('✅ Configuración de empresa guardada');
+  }
+
+  function restaurarEmpresa() {
+    if (!confirm('¿Restaurar configuración por defecto? Se perderán los datos de tu empresa.')) return;
+    EMPRESA = {...EMPRESA_DEFAULT};
+    localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+    aplicarConfigEmpresa();
+    alert('✅ Configuración restaurada');
+  }
+
+  // ============ ACTUALIZAR ETIQUETAS ============
+  function actualizarEtiquetas() {
+    document.querySelectorAll('[data-price]').forEach(el => {
+      const key = el.getAttribute('data-price');
+      if (PRECIOS[key] !== undefined) el.textContent = fmt(PRECIOS[key]);
+    });
+    document.getElementById('versionTag').textContent = VERSION;
+  }
+
+  // ============ CÁLCULO ============
+  function calcular() {
+    let totalMO = 0;
+    const detalles = [];
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (!input) continue;
+      const cant = parseFloat(input.value) || 0;
+      const sub = cant * PRECIOS[key];
+      const stEl = document.getElementById('st_' + key);
+      if (stEl) stEl.textContent = fmt(sub);
+      if (cant > 0) {
+        detalles.push({
+          desc: ETIQUETAS[key], cant,
+          unidad: 'ud.',
+          precio: PRECIOS[key], sub
+        });
+      }
+      totalMO += sub;
+    }
+
+    document.getElementById('total').textContent = fmt(totalMO);
+    document.getElementById('totalMO').textContent = fmt(totalMO);
+
+    generarImpresion(detalles, totalMO);
+  }
+
+  // ============ IMPRESIÓN ============
+  function generarImpresion(detallesMO, totalMO) {
+    const cliente = document.getElementById('clienteNombre').value || '(Sin nombre)';
+    const dir = document.getElementById('clienteDireccion').value || '';
+    const tel = document.getElementById('clienteTel').value || '';
+    const fecha = new Date().toLocaleDateString('es-AR');
+
+    let headerHTML = '';
+    if (EMPRESA.logo || EMPRESA.nombre) {
+      headerHTML = '<div class="print-header">';
+      if (EMPRESA.logo) headerHTML += `<img src="${EMPRESA.logo}" alt="Logo">`;
+      headerHTML += '<div class="ph-info">';
+      if (EMPRESA.nombre) headerHTML += `<h1>${EMPRESA.nombre}</h1>`;
+      if (EMPRESA.slogan) headerHTML += `<p><em>${EMPRESA.slogan}</em></p>`;
+      const contactLines = [];
+      if (EMPRESA.direccion) contactLines.push(`📍 ${EMPRESA.direccion}`);
+      if (EMPRESA.telefono) contactLines.push(`📞 ${EMPRESA.telefono}`);
+      if (EMPRESA.email) contactLines.push(`✉️ ${EMPRESA.email}`);
+      if (EMPRESA.web) contactLines.push(`🌐 ${EMPRESA.web}`);
+      if (EMPRESA.redes) contactLines.push(`📱 ${EMPRESA.redes}`);
+      if (EMPRESA.cuit) contactLines.push(`CUIT: ${EMPRESA.cuit}`);
+      if (contactLines.length) headerHTML += `<p>${contactLines.join(' · ')}</p>`;
+      headerHTML += '</div></div>';
+    }
+
+    let filasMO = '';
+    detallesMO.forEach(d => {
+      filasMO += `<tr><td>${d.desc}</td><td style="text-align:center">${d.cant} ${d.unidad}</td><td style="text-align:right">${fmt(d.precio)}</td><td style="text-align:right">${fmt(d.sub)}</td></tr>`;
+    });
+
+    let html = headerHTML;
+    html += `<h1 style="color:var(--color-secondary);margin-top:10px">Presupuesto de Obra Eléctrica</h1>
+      <p><strong>Fecha:</strong> ${fecha}</p>
+      <p><strong>Cliente:</strong> ${cliente}</p>
+      ${dir ? `<p><strong>Dirección:</strong> ${dir}</p>` : ''}
+      ${tel ? `<p><strong>Teléfono:</strong> ${tel}</p>` : ''}`;
+
+    if (detallesMO.length > 0) {
+      html += `<h2>🔧 Mano de Obra</h2>
+        <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasMO}</tbody></table>`;
+    }
+
+    html += `<div class="total-final">TOTAL: ${fmt(totalMO)}</div>`;
+    html += `<div class="print-footer">
+      <p>Presupuesto válido por 15 días.</p>
+      ${EMPRESA.nombre ? `<p style="margin-top:8px"><strong>${EMPRESA.nombre}</strong>${EMPRESA.cuit ? ' · CUIT: ' + EMPRESA.cuit : ''}</p>` : ''}
+    </div>`;
+
+    document.getElementById('printArea').innerHTML = html;
+  }
+
+  function imprimir() { calcular(); window.print(); }
+
+  function limpiar() {
+    if (!confirm('¿Limpiar todos los campos?')) return;
+    document.querySelectorAll('.content input[type="number"]').forEach(i => i.value = 0);
+    document.querySelectorAll('.content input[type="text"]').forEach(i => {
+      if (!i.id.startsWith('search') && !i.id.startsWith('emp') && !i.id.startsWith('color')) i.value = '';
+    });
+    calcular();
+  }
+
+  // ============ ADMIN ============
+  function abrirAdmin() {
+    document.getElementById('adminModal').classList.add('active');
+    document.getElementById('versionInput').value = VERSION;
+    renderizarEditorPrecios();
+    aplicarConfigEmpresa();
+  }
+  function cerrarAdmin() { document.getElementById('adminModal').classList.remove('active'); }
+
+  function cambiarTab(e, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    if (tabId === 'tab-brand') aplicarConfigEmpresa();
+  }
+
+  function renderizarEditorPrecios(filtro = '') {
+    const cont = document.getElementById('priceList');
+    cont.innerHTML = '';
+    const f = filtro.toLowerCase();
+    for (const key in PRECIOS) {
+      if (f && !ETIQUETAS[key].toLowerCase().includes(f)) continue;
+      const div = document.createElement('div');
+      div.className = 'price-editor';
+      div.innerHTML = `<label>${ETIQUETAS[key]}</label><input type="number" data-key="${key}" value="${PRECIOS[key]}" step="1">`;
+      cont.appendChild(div);
+    }
+  }
+
+  function filtrarPrecios() { renderizarEditorPrecios(document.getElementById('searchPrices').value); }
+
+  function guardarPrecios() {
+    document.querySelectorAll('#priceList input').forEach(inp => {
+      const key = inp.getAttribute('data-key');
+      const val = parseFloat(inp.value);
+      if (!isNaN(val) && val >= 0) PRECIOS[key] = val;
+    });
+    VERSION = document.getElementById('versionInput').value || VERSION;
+    localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+    localStorage.setItem('versionAAIERIC', VERSION);
+    actualizarEtiquetas(); calcular();
+    alert('✅ Precios guardados');
+  }
+
+  function restaurarDefault() {
+    if (!confirm('¿Restaurar valores originales?')) return;
+    PRECIOS = {...PRECIOS_DEFAULT}; VERSION = 'Junio 2026';
+    localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+    localStorage.setItem('versionAAIERIC', VERSION);
+    renderizarEditorPrecios(); actualizarEtiquetas(); calcular();
+    alert('✅ Valores restaurados');
+  }
+
+  // ============ BACKUP JSON ============
+  function exportarJSON() {
+    const data = { version: VERSION, fecha: new Date().toISOString(), precios: PRECIOS, empresa: EMPRESA };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `config_${(EMPRESA.nombre || 'empresa').replace(/\s+/g,'_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('backupLog').innerHTML = '<div class="alert alert-success">✅ Configuración exportada</div>';
+  }
+
+  function importarJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.precios) PRECIOS = {...PRECIOS_DEFAULT, ...data.precios};
+        if (data.empresa) EMPRESA = {...EMPRESA_DEFAULT, ...data.empresa};
+        if (data.version) { VERSION = data.version; document.getElementById('versionInput').value = VERSION; }
+        localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+        localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+        localStorage.setItem('versionAAIERIC', VERSION);
+        aplicarConfigEmpresa();
+        renderizarEditorPrecios();
+        actualizarEtiquetas();
+        calcular();
+        document.getElementById('backupLog').innerHTML = '<div class="alert alert-success">✅ Configuración importada</div>';
+      } catch (err) {
+        document.getElementById('backupLog').innerHTML = `<div class="alert alert-warning">❌ Error: ${err.message}</div>`;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ============ ACCESO SECRETO AL ADMIN ============
+  // Opción 1: Ctrl + Shift + A (en PC)
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      e.preventDefault();
+      abrirAdmin();
+    }
+  });
+
+  // Opción 2: Triple clic en el logo (PC y celular)
+  let logoClicks = 0;
+  let logoClickTimer = null;
+  document.getElementById('headerLogo').addEventListener('click', () => {
+    logoClicks++;
+    if (logoClicks >= 3) {
+      abrirAdmin();
+      logoClicks = 0;
+      clearTimeout(logoClickTimer);
+    } else {
+      clearTimeout(logoClickTimer);
+      logoClickTimer = setTimeout(() => { logoClicks = 0; }, 600);
+    }
+  });
+
+  // Inicialización
+  aplicarConfigEmpresa();
+  document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcular));
+  actualizarEtiquetas();
+  calcular();
+</script>
+</body>
+</html>
