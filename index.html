@@ -780,7 +780,6 @@
     }
 
     document.getElementById('total').textContent = fmt(totalMO);
-    document.getElementById('totalMO').textContent = fmt(totalMO);
 
     generarImpresion(detalles, totalMO);
   }
@@ -850,9 +849,12 @@
   function limpiar() {
     if (!confirm('¿Limpiar todos los campos?')) return;
     document.querySelectorAll('.content input[type="number"]').forEach(i => i.value = 0);
+    document.querySelectorAll('.content input[type="checkbox"]').forEach(i => i.checked = false);
     document.querySelectorAll('.content input[type="text"]').forEach(i => {
       if (!i.id.startsWith('search') && !i.id.startsWith('emp') && !i.id.startsWith('color')) i.value = '';
     });
+    const obs = document.getElementById('observaciones');
+    if (obs) obs.value = '';
     calcular();
   }
 
