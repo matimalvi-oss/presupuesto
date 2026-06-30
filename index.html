@@ -492,7 +492,8 @@
 
     <div class="btn-group">
       <button class="btn-print" onclick="imprimir()">🖨️ Imprimir / PDF</button>
-     
+      <button class="btn-secondary" onclick="guardarPresupuesto()" style="background:#ff9800">💾 Guardar</button>
+      <button class="btn-secondary" onclick="cargarPresupuesto()" id="btnCargar" style="background:#2196f3;display:none">📂 Continuar</button>
       <!-- <button class="btn-admin" onclick="abrirAdmin()">⚙️ Admin</button> -->
       <button class="btn-clear" onclick="limpiar()">🗑️ Limpiar</button>
     </div>
@@ -960,11 +961,86 @@
 
  
 
+// ============ GUARDAR/CARGAR PRESUPUESTO ============
+  function guardarPresupuesto() {
+    const datos = {
+      clienteNombre: document.getElementById('clienteNombre').value,
+      clienteDireccion: document.getElementById('clienteDireccion').value,
+      clienteTel: document.getElementById('clienteTel').value,
+      observaciones: document.getElementById('observaciones').value,
+      campos: {}
+    };
+
+    // Guardar todos los inputs (checkboxes y números)
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (input) {
+        if (input.type === 'checkbox') {
+          datos.campos[key] = input.checked;
+        } else {
+          datos.campos[key] = input.value;
+        }
+      }
+    }
+
+    datos.fechaGuardado = new Date().toLocaleString('es-AR');
+    localStorage.setItem('presupuestoActual', JSON.stringify(datos));
+    
+    alert(`✅ Presupuesto guardado correctamente\n\nCliente: ${datos.clienteNombre || '(Sin nombre)'}\nFecha: ${datos.fechaGuardado}`);
+    actualizarBotonCargar();
+  }
+
+  function cargarPresupuesto() {
+    const datosGuardados = localStorage.getItem('presupuestoActual');
+    if (!datosGuardados) {
+      alert('❌ No hay ningún presupuesto guardado');
+      return;
+    }
+
+    try {
+      const datos = JSON.parse(datosGuardados);
+
+      // Restaurar datos del cliente
+      document.getElementById('clienteNombre').value = datos.clienteNombre || '';
+      document.getElementById('clienteDireccion').value = datos.clienteDireccion || '';
+      document.getElementById('clienteTel').value = datos.clienteTel || '';
+      document.getElementById('observaciones').value = datos.observaciones || '';
+
+      // Restaurar campos
+      for (const key in datos.campos) {
+        const input = document.getElementById(key);
+        if (input) {
+          if (input.type === 'checkbox') {
+            input.checked = datos.campos[key];
+          } else {
+            input.value = datos.campos[key];
+          }
+        }
+      }
+
+      calcular();
+      alert(`✅ Presupuesto cargado correctamente\n\nCliente: ${datos.clienteNombre || '(Sin nombre)'}\nGuardado: ${datos.fechaGuardado || 'Fecha desconocida'}`);
+    } catch (err) {
+      alert('❌ Error al cargar el presupuesto: ' + err.message);
+    }
+  }
+
+  function actualizarBotonCargar() {
+    const datosGuardados = localStorage.getItem('presupuestoActual');
+    const btnCargar = document.getElementById('btnCargar');
+    if (datosGuardados) {
+      btnCargar.style.display = 'inline-block';
+    } else {
+      btnCargar.style.display = 'none';
+    }
+  }
+
   // Inicialización
   aplicarConfigEmpresa();
   document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcular));
   actualizarEtiquetas();
   calcular();
+  actualizarBotonCargar();
 </script>
 </body>
 </html>
