@@ -768,7 +768,7 @@
     for (const key in PRECIOS) {
       const input = document.getElementById(key);
       if (!input) continue;
-      const cant = parseFloat(input.value) || 0;
+      const cant = input.type === 'checkbox' ? (input.checked ? 1 : 0) : (parseFloat(input.value) || 0);
       const sub = cant * PRECIOS[key];
       const stEl = document.getElementById('st_' + key);
       if (stEl) stEl.textContent = fmt(sub);
