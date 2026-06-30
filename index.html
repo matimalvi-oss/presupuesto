@@ -133,17 +133,27 @@
   .company-info { text-align: left; flex: 1; min-width: 200px; }
   .company-info h1 { font-size: 1.5em; margin-bottom: 3px; }
   .company-info p { font-size: 0.85em; opacity: 0.95; }
-  .user-badge {
+  .user-section {
     position: absolute;
     top: 10px;
     right: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+  .user-info {
     background: rgba(255,255,255,0.25);
     padding: 6px 12px;
     border-radius: 12px;
-    font-size: 0.75em;
+    font-size: 0.8em;
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .user-info #userEmail {
+    font-weight: 500;
   }
   .btn-logout {
     background: rgba(255,255,255,0.3);
@@ -155,13 +165,12 @@
     font-size: 0.85em;
   }
   .version-tag {
-    position: absolute;
-    top: 10px;
-    left: 15px;
     background: rgba(255,255,255,0.25);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.75em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    display: inline-block;
+    margin-top: 4px;
   }
   .content { padding: 25px; }
   .section {
@@ -438,6 +447,14 @@
     .company-info { text-align: center; }
     .presupuesto-item { grid-template-columns: 1fr; }
     .user-badge { position: static; margin-top: 10px; justify-content: center; }
+    .user-section {
+      position: static;
+      margin-top: 15px;
+      align-items: center;
+    }
+    .user-info {
+      align-items: center;
+    }
   }
 </style>
 </head>
@@ -481,20 +498,22 @@
 
 <!-- APP PRINCIPAL -->
 <div class="container" id="appContainer" style="display:none">
-  <header>
-    <div class="version-tag" id="versionTag">Junio 2026</div>
+<header>
     <div class="header-content">
       <div class="company-logo" id="headerLogo">
-        <div class="placeholder">⚡</div>
+        <div class="placeholder"></div>
       </div>
       <div class="company-info">
         <h1 id="headerCompanyName">VAROMA</h1>
         <p id="headerCompanySlogan">Mano de obra</p>
       </div>
-    </div>
-    <div class="user-badge no-print" id="userBadge">
-      <span id="userEmail">usuario@email.com</span>
-      <button class="btn-logout" onclick="cerrarSesion()">🚪 Salir</button>
+      <div class="user-section no-print" id="userBadge">
+        <div class="user-info">
+          <span id="userEmail">usuario@email.com</span>
+          <span class="version-tag" id="versionTag">Julio 2026</span>
+        </div>
+        <button class="btn-logout" onclick="cerrarSesion()">🚪 Salir</button>
+      </div>
     </div>
   </header>
 
