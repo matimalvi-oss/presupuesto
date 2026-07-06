@@ -1121,10 +1121,8 @@ const ADMIN_EMAILS = [
       totalMO += sub;
     }
     
-    // Sumar trabajos personalizados (sin re-renderizar)
+    // Sumar trabajos personalizados
     const totalTP = calcularTotalTrabajos();
-    actualizarSubtotalesTrabajos();  // ← Solo actualiza los números, no recrea inputs
-    
     const totalFinal = totalMO + totalTP;
     document.getElementById('total').textContent = fmt(totalFinal);
     generarImpresion(detalles, totalMO, totalTP);
@@ -1628,7 +1626,7 @@ async function enviarPresupuesto() {
     });
   });
 
-    // ============ TRABAJOS PERSONALIZADOS ============
+  // ============ TRABAJOS PERSONALIZADOS ============
   let trabajosPersonalizados = [];
   let trabajoIdCounter = 0;
 
@@ -1653,6 +1651,7 @@ async function enviarPresupuesto() {
   function actualizarTrabajo(id, campo, valor) {
     const trabajo = trabajosPersonalizados.find(t => t.id === id);
     if (!trabajo) return;
+    
     if (campo === 'descripcion') {
       trabajo.descripcion = valor;
     } else if (campo === 'cantidad') {
@@ -1660,24 +1659,44 @@ async function enviarPresupuesto() {
     } else if (campo === 'precio') {
       trabajo.precio = parseFloat(valor) || 0;
     }
-    // Solo actualizar subtotales, no re-renderizar todo
-    actualizarSubtotalesTrabajos();
+    
+    // Actualizar solo el subtotal de este trabajo específico
+    const item = document.querySelector(`[data-trabajo-id="${id}"]`);
+    if (item) {
+      const subtotal = trabajo.cantidad * trabajo.precio;
+      const subtotalEl = item.querySelector('.tp-subtotal');
+      if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+    }
     
     // Recalcular total general
-    const totalMO = calcularTotalMO();
-    const totalTP = calcularTotalTrabajos();
-    document.getElementById('total').textContent = fmt(totalMO + totalTP);
+    calcular();
   }
 
-  function calcularTotalMO() {
-    let total = 0;
-    for (const key in PRECIOS) {
-      const input = document.getElementById(key);
-      if (!input) continue;
-      const cant = input.type === 'checkbox' ? (input.checked ? 1 : 0) : (parseFloat(input.value) || 0);
-      total += cant * PRECIOS[key];
+  function renderizarTrabajos() {
+    const cont = document.getElementById('trabajosPersonalizados');
+    if (trabajosPersonalizados.length === 0) {
+      cont.innerHTML = '<div class="trabajo-vacio">No hay trabajos personalizados agregados</div>';
+      return;
     }
-    return total;
+    cont.innerHTML = '';
+    trabajosPersonalizados.forEach(t => {
+      const subtotal = t.cantidad * t.precio;
+      const div = document.createElement('div');
+      div.className = 'trabajo-item';
+      div.setAttribute('data-trabajo-id', t.id);
+      div.innerHTML = `
+        <input type="text" placeholder="Descripción del trabajo" value="${t.descripcion}" oninput="actualizarTrabajo(${t.id}, 'descripcion', this.value)">
+        <input type="number" placeholder="Cant." value="${t.cantidad}" min="0" step="0.01" oninput="actualizarTrabajo(${t.id}, 'cantidad', this.value)">
+        <input type="number" placeholder="Precio unit." value="${t.precio}" min="0" step="0.01" oninput="actualizarTrabajo(${t.id}, 'precio', this.value)">
+        <div class="tp-subtotal">${fmt(subtotal)}</div>
+        <button class="tp-del" onclick="eliminarTrabajo(${t.id})"></button>
+      `;
+      cont.appendChild(div);
+    });
+  }
+
+  function calcularTotalTrabajos() {
+    return trabajosPersonalizados.reduce((total, t) => total + (t.cantidad * t.precio), 0);
   }
 
   function renderizarTrabajos() {
@@ -1699,19 +1718,6 @@ async function enviarPresupuesto() {
         <button class="tp-del" onclick="eliminarTrabajo(${t.id})">✕</button>
       `;
       cont.appendChild(div);
-    });
-  }
-
-  function actualizarSubtotalesTrabajos() {
-    // Actualiza solo los textos de subtotal sin recrear los inputs
-    const items = document.querySelectorAll('.trabajo-item');
-    items.forEach((item, index) => {
-      const trabajo = trabajosPersonalizados[index];
-      if (trabajo) {
-        const subtotal = trabajo.cantidad * trabajo.precio;
-        const subtotalEl = item.querySelector('.tp-subtotal');
-        if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
-      }
     });
   }
   
