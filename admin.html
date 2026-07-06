@@ -214,6 +214,51 @@
   .field textarea { resize: vertical; min-height: 60px; }
   .subtotal { font-weight: bold; color: var(--color-secondary); min-width: 110px; text-align: right; }
 
+    /* Trabajos personalizados */
+  .trabajo-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-left: 4px solid #9c27b0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 80px 120px 110px 40px;
+    gap: 8px;
+    align-items: center;
+  }
+  .trabajo-item input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    width: 100%;
+    font-family: inherit;
+  }
+  .trabajo-item .tp-subtotal {
+    font-weight: bold;
+    color: #9c27b0;
+    text-align: right;
+    font-size: 0.95em;
+  }
+  .trabajo-item .tp-del {
+    background: #ffebee;
+    color: #c62828;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1em;
+  }
+  .trabajo-item .tp-del:hover { background: #ffcdd2; }
+  .trabajo-vacio {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+  }
+  
   .total-box {
     background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
     color: white;
@@ -463,6 +508,8 @@
       position: static;
       margin-top: 15px;
       align-items: center;
+    .trabajo-item { grid-template-columns: 1fr; }
+    .trabajo-item .tp-subtotal { text-align: left; }
     }
     .user-info {
       align-items: center;
@@ -560,6 +607,14 @@
       <div class="field"><label>Colocación de artefacto simple <span class="price-hint" data-price="aplSimple"></span></label><input type="number" id="aplSimple" value="0" min="0"><span class="subtotal" id="st_aplSimple">$0</span></div>
       <div class="field"><label>Colocación de artefacto complejo (precio base) <span class="price-hint" data-price="aplComple"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Consultar según complejidad</small></label><input type="number" id="aplComple" value="0" min="0"><span class="subtotal" id="st_aplComple">$0</span></div>
       <div class="field"><label>Pilastra <span class="price-hint" data-price="pilar"></span></label><input type="number" id="pilar" value="0" min="0"><span class="subtotal" id="st_pilar">$0</span></div>
+    </div>
+
+    <!-- TRABAJOS PERSONALIZADOS -->
+    <div class="section" style="border-left-color:#9c27b0">
+      <h2>🛠️ Trabajos Personalizados</h2>
+      <p style="color:#666;font-size:0.85em;margin-bottom:15px">Agregá trabajos específicos que no estén en la lista anterior</p>
+      <div id="trabajosPersonalizados"></div>
+      <button class="btn-secondary" onclick="agregarTrabajo()" style="background:#9c27b0;margin-top:10px">➕ Agregar Trabajo</button>
     </div>
 
     <!-- OBSERVACIONES -->
@@ -1062,12 +1117,18 @@
       }
       totalMO += sub;
     }
-    document.getElementById('total').textContent = fmt(totalMO);
-    generarImpresion(detalles, totalMO);
+    
+    // Sumar trabajos personalizados
+    const totalTP = calcularTotalTrabajos();
+    renderizarTrabajos();
+    
+    const totalFinal = totalMO + totalTP;
+    document.getElementById('total').textContent = fmt(totalFinal);
+    generarImpresion(detalles, totalMO, totalTP);
   }
 
   // ============ IMPRESIÓN ============
-  function generarImpresion(detallesMO, totalMO) {
+  function generarImpresion(detallesMO, totalMO, totalTP = 0) {
     const cliente = document.getElementById('clienteNombre').value || '(Sin nombre)';
     const dir = document.getElementById('clienteDireccion').value || '';
     const tel = document.getElementById('clienteTel').value || '';
@@ -1107,6 +1168,21 @@
       html += `<h2> Mano de Obra</h2>
         <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasMO}</tbody></table>`;
     }
+
+        // Trabajos personalizados
+    if (trabajosPersonalizados.length > 0) {
+      let filasTP = '';
+      trabajosPersonalizados.forEach(t => {
+        if (t.descripcion && (t.cantidad > 0 || t.precio > 0)) {
+          const sub = t.cantidad * t.precio;
+          filasTP += `<tr><td>${t.descripcion}</td><td style="text-align:center">${t.cantidad}</td><td style="text-align:right">${fmt(t.precio)}</td><td style="text-align:right">${fmt(sub)}</td></tr>`;
+        }
+      });
+      if (filasTP) {
+        html += `<h2>🛠️ Trabajos Personalizados</h2>
+          <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasTP}</tbody></table>`;
+      }
+    }
     
     const observaciones = document.getElementById('observaciones').value.trim();
     if (observaciones) {
@@ -1116,7 +1192,8 @@
       </div>`;
     }
     
-    html += `<div class="total-final">TOTAL: ${fmt(totalMO)}</div>`;
+    const totalFinal = totalMO + totalTP;
+    html += `<div class="total-final">TOTAL: ${fmt(totalFinal)}</div>`;
     
     // Secciones de firma y sello por porcentaje de pago
     html += `
@@ -1194,6 +1271,8 @@
     });
     const obs = document.getElementById('observaciones');
     if (obs) obs.value = '';
+    trabajosPersonalizados = [];
+    renderizarTrabajos();
     calcular();
   }
 
@@ -1233,6 +1312,14 @@ async function enviarPresupuesto() {
       datos.campos[key] = input.type === 'checkbox' ? input.checked : input.value;
     }
   }
+
+      // Agregar trabajos personalizados
+    datos.trabajosPersonalizados = trabajosPersonalizados.map(t => ({
+      descripcion: t.descripcion,
+      cantidad: t.cantidad,
+      precio: t.precio,
+      subtotal: t.cantidad * t.precio
+    }));
 
   const id = generarId();
   datos.id = id;
@@ -1538,10 +1625,71 @@ async function enviarPresupuesto() {
     });
   });
 
+    // ============ TRABAJOS PERSONALIZADOS ============
+  let trabajosPersonalizados = [];
+  let trabajoIdCounter = 0;
+
+  function agregarTrabajo() {
+    const id = trabajoIdCounter++;
+    trabajosPersonalizados.push({
+      id: id,
+      descripcion: '',
+      cantidad: 1,
+      precio: 0
+    });
+    renderizarTrabajos();
+  }
+
+  function eliminarTrabajo(id) {
+    trabajosPersonalizados = trabajosPersonalizados.filter(t => t.id !== id);
+    renderizarTrabajos();
+    calcular();
+  }
+
+  function actualizarTrabajo(id, campo, valor) {
+    const trabajo = trabajosPersonalizados.find(t => t.id === id);
+    if (!trabajo) return;
+    if (campo === 'descripcion') {
+      trabajo.descripcion = valor;
+    } else if (campo === 'cantidad') {
+      trabajo.cantidad = parseFloat(valor) || 0;
+    } else if (campo === 'precio') {
+      trabajo.precio = parseFloat(valor) || 0;
+    }
+    calcular();
+  }
+
+  function renderizarTrabajos() {
+    const cont = document.getElementById('trabajosPersonalizados');
+    if (trabajosPersonalizados.length === 0) {
+      cont.innerHTML = '<div class="trabajo-vacio">No hay trabajos personalizados agregados</div>';
+      return;
+    }
+    cont.innerHTML = '';
+    trabajosPersonalizados.forEach(t => {
+      const subtotal = t.cantidad * t.precio;
+      const div = document.createElement('div');
+      div.className = 'trabajo-item';
+      div.innerHTML = `
+        <input type="text" placeholder="Descripción del trabajo" value="${t.descripcion}" oninput="actualizarTrabajo(${t.id}, 'descripcion', this.value)">
+        <input type="number" placeholder="Cant." value="${t.cantidad}" min="0" step="0.01" oninput="actualizarTrabajo(${t.id}, 'cantidad', this.value)">
+        <input type="number" placeholder="Precio unit." value="${t.precio}" min="0" step="0.01" oninput="actualizarTrabajo(${t.id}, 'precio', this.value)">
+        <div class="tp-subtotal">${fmt(subtotal)}</div>
+        <button class="tp-del" onclick="eliminarTrabajo(${t.id})">✕</button>
+      `;
+      cont.appendChild(div);
+    });
+  }
+
+  function calcularTotalTrabajos() {
+    return trabajosPersonalizados.reduce((total, t) => total + (t.cantidad * t.precio), 0);
+  }
+  
   // Inicialización
   aplicarConfigEmpresa();
   document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcular));
   actualizarEtiquetas();
+  renderizarTrabajos();
   calcular();
 </script>
 </body>
