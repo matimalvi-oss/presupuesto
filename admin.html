@@ -1118,9 +1118,9 @@
       totalMO += sub;
     }
     
-    // Sumar trabajos personalizados
+    // Sumar trabajos personalizados (sin re-renderizar)
     const totalTP = calcularTotalTrabajos();
-    renderizarTrabajos();
+    actualizarSubtotalesTrabajos();  // ← Solo actualiza los números, no recrea inputs
     
     const totalFinal = totalMO + totalTP;
     document.getElementById('total').textContent = fmt(totalFinal);
@@ -1638,6 +1638,7 @@ async function enviarPresupuesto() {
       precio: 0
     });
     renderizarTrabajos();
+    calcular();
   }
 
   function eliminarTrabajo(id) {
@@ -1656,7 +1657,24 @@ async function enviarPresupuesto() {
     } else if (campo === 'precio') {
       trabajo.precio = parseFloat(valor) || 0;
     }
-    calcular();
+    // Solo actualizar subtotales, no re-renderizar todo
+    actualizarSubtotalesTrabajos();
+    
+    // Recalcular total general
+    const totalMO = calcularTotalMO();
+    const totalTP = calcularTotalTrabajos();
+    document.getElementById('total').textContent = fmt(totalMO + totalTP);
+  }
+
+  function calcularTotalMO() {
+    let total = 0;
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (!input) continue;
+      const cant = input.type === 'checkbox' ? (input.checked ? 1 : 0) : (parseFloat(input.value) || 0);
+      total += cant * PRECIOS[key];
+    }
+    return total;
   }
 
   function renderizarTrabajos() {
@@ -1681,8 +1699,17 @@ async function enviarPresupuesto() {
     });
   }
 
-  function calcularTotalTrabajos() {
-    return trabajosPersonalizados.reduce((total, t) => total + (t.cantidad * t.precio), 0);
+  function actualizarSubtotalesTrabajos() {
+    // Actualiza solo los textos de subtotal sin recrear los inputs
+    const items = document.querySelectorAll('.trabajo-item');
+    items.forEach((item, index) => {
+      const trabajo = trabajosPersonalizados[index];
+      if (trabajo) {
+        const subtotal = trabajo.cantidad * trabajo.precio;
+        const subtotalEl = item.querySelector('.tp-subtotal');
+        if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+      }
+    });
   }
   
   // Inicialización
