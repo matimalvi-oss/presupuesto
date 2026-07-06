@@ -1105,7 +1105,7 @@ const ADMIN_EMAILS = [
   }
 
   // ============ CÁLCULO ============
-  function calcular() {
+function calcular() {
     let totalMO = 0;
     const detalles = [];
     for (const key in PRECIOS) {
@@ -1121,15 +1121,17 @@ const ADMIN_EMAILS = [
       totalMO += sub;
     }
     
-    // Sumar trabajos personalizados
     const totalTP = calcularTotalTrabajos();
     const totalFinal = totalMO + totalTP;
     document.getElementById('total').textContent = fmt(totalFinal);
+    
+    // Solo actualizar impresión cuando sea necesario
     generarImpresion(detalles, totalMO, totalTP);
-  }
+}
 
   // ============ IMPRESIÓN ============
   function generarImpresion(detallesMO, totalMO, totalTP = 0) {
+    const totalFinal = totalMO + totalTP;
     const cliente = document.getElementById('clienteNombre').value || '(Sin nombre)';
     const dir = document.getElementById('clienteDireccion').value || '';
     const tel = document.getElementById('clienteTel').value || '';
@@ -1205,7 +1207,7 @@ const ADMIN_EMAILS = [
           <!-- 50% -->
           <div style="background:white;padding:15px;border-radius:6px;border:2px solid #ff9800">
             <h4 style="color:#f57c00;margin-bottom:10px;text-align:center;font-size:1.1em">💵 50% - Anticipo</h4>
-            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalMO * 0.5))}</strong></p>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalFinal * 0.5))}</strong></p>
             <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
             <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello</p>
             <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">
@@ -1216,7 +1218,7 @@ const ADMIN_EMAILS = [
           <!-- 75% -->
           <div style="background:white;padding:15px;border-radius:6px;border:2px solid #2196f3">
             <h4 style="color:#1976d2;margin-bottom:10px;text-align:center;font-size:1.1em">💵 75% - Avance</h4>
-            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalMO * 0.25))}</strong></p>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalFinal * 0.25))}</strong></p>
             <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
             <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello</p>
             <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">
@@ -1227,7 +1229,7 @@ const ADMIN_EMAILS = [
           <!-- 100% -->
           <div style="background:white;padding:15px;border-radius:6px;border:2px solid #4caf50">
             <h4 style="color:#2e7d32;margin-bottom:10px;text-align:center;font-size:1.1em">✅ 100% - Total</h4>
-            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(totalMO*0.25)}</strong></p>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(totalFinal*0.25)}</strong></p>
             <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
             <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello</p>
             <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">
@@ -1648,7 +1650,7 @@ async function enviarPresupuesto() {
     calcular();
   }
 
-  function actualizarTrabajo(id, campo, valor) {
+function actualizarTrabajo(id, campo, valor) {
     const trabajo = trabajosPersonalizados.find(t => t.id === id);
     if (!trabajo) return;
     
@@ -1660,17 +1662,33 @@ async function enviarPresupuesto() {
       trabajo.precio = parseFloat(valor) || 0;
     }
     
-    // Actualizar solo el subtotal de este trabajo específico
-    const item = document.querySelector(`[data-trabajo-id="${id}"]`);
-    if (item) {
-      const subtotal = trabajo.cantidad * trabajo.precio;
-      const subtotalEl = item.querySelector('.tp-subtotal');
-      if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+    // Actualizar el subtotal visual de ESTA fila específica
+    const subtotal = trabajo.cantidad * trabajo.precio;
+    const fila = document.querySelector(`.trabajo-item[data-trabajo-id="${id}"]`);
+    if (fila) {
+      const subtotalEl = fila.querySelector('.tp-subtotal');
+      if (subtotalEl) {
+        subtotalEl.textContent = fmt(subtotal);
+      }
     }
     
-    // Recalcular total general
-    calcular();
-  }
+    // Recalcular total general (sin re-renderizar los inputs)
+    const totalMO = calcularTotalMO();
+    const totalTP = calcularTotalTrabajos();
+    document.getElementById('total').textContent = fmt(totalMO + totalTP);
+}
+
+// Función auxiliar para calcular solo mano de obra estándar
+function calcularTotalMO() {
+    let total = 0;
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (!input) continue;
+      const cant = input.type === 'checkbox' ? (input.checked ? 1 : 0) : (parseFloat(input.value) || 0);
+      total += cant * PRECIOS[key];
+    }
+    return total;
+}
 
   function renderizarTrabajos() {
     const cont = document.getElementById('trabajosPersonalizados');
