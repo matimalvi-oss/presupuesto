@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff9800">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>VAROMA Admin - Presupuestos</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"VAROMA Admin","short_name":"VAROMA","start_url":"./admin.html","display":"standalone","background_color":"%231e3c72","theme_color":"%23ff9800","orientation":"portrait","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2232%22 fill=%22%23ff9800%22/><text x=%2296%22 y=%22130%22 font-size=%22120%22 text-anchor=%22middle%22 fill=%22white%22>V</text></svg>","sizes":"192x192","type":"image/svg+xml","purpose":"any"},{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%2280%22 fill=%22%23ff9800%22/><text x=%22256%22 y=%22350%22 font-size=%22320%22 text-anchor=%22middle%22 fill=%22white%22>V</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}'>
+
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><rect width="180" height="180" rx="30" fill="%23ff9800"/><text x="90" y="125" font-size="110" text-anchor="middle" fill="white">V</text></svg>'>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<style>
+  :root {
+    --color-primary: #ff9800;
+    --color-primary-dark: #f57c00;
+    --color-secondary: #1e3c72;
+    --color-secondary-dark: #2a5298;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+  }
+  
+  /* LOGIN SCREEN */
+  .login-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  .login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+  }
+  .login-logo { font-size: 4em; margin-bottom: 10px; }
+  .login-box h1 { color: var(--color-secondary); margin-bottom: 5px; }
+  .login-box > p { color: #666; margin-bottom: 25px; font-size: 0.95em; }
+  .login-form input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .login-form input:focus { outline: none; border-color: var(--color-primary); }
+  .btn-login {
+    width: 100%;
+    padding: 12px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .btn-login:hover { background: var(--color-primary-dark); }
+  .login-error { color: #c62828; margin-top: 10px; font-size: 0.9em; }
+
+  /* CONTAINER */
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: white;
+    padding: 25px;
+    text-align: center;
+    position: relative;
+  }
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .company-logo {
+    width: 80px; height: 80px;
+    border-radius: 12px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+  .company-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .company-logo .placeholder { font-size: 2.5em; color: var(--color-primary); }
+  .company-info { text-align: center; flex: 1; min-width: 200px; }
+  .company-info h1 { font-size: 1.5em; margin-bottom: 3px; }
+  .company-info p { font-size: 0.85em; opacity: 0.95; }
+  .user-section {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.25);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .user-info #userEmail { font-weight: 500; }
+  .btn-logout {
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+  }
+  .version-tag {
+    background: rgba(255,255,255,0.25);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    display: inline-block;
+    margin-top: 4px;
+  }
+  .content { padding: 25px; }
+  .section {
+    background: #f8f9fa;
+    border-left: 4px solid var(--color-primary);
+    padding: 18px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+  }
+  .section h2 {
+    color: var(--color-secondary);
+    font-size: 1.15em;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+  }
+  .field label { flex: 1; min-width: 200px; font-size: 0.95em; color: #444; }
+  .field .price-hint { font-size: 0.8em; color: #888; margin-left: 5px; }
+  .field input, .field select, .field textarea {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    min-width: 100px;
+    font-family: inherit;
+  }
+  .field input[type="number"] { width: 80px; }
+  .field input[type="text"], .field input[type="email"], .field input[type="tel"], .field textarea { flex: 1; min-width: 150px; }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .subtotal { font-weight: bold; color: var(--color-secondary); min-width: 110px; text-align: right; }
+
+  .total-box {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .total-box .label { font-size: 1em; opacity: 0.9; }
+  .total-box .amount { font-size: 2.5em; font-weight: bold; margin-top: 8px; }
+
+  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+  button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .btn-calc { background: #4caf50; color: white; }
+  .btn-print { background: #2196f3; color: white; }
+  .btn-clear { background: #f44336; color: white; }
+  .btn-secondary { background: #607d8b; color: white; }
+  .btn-send { background: #ff9800; color: white; }
+  .btn-view { background: #00bcd4; color: white; }
+  .btn-wa { background: #25d366; color: white; }
+  .btn-admin { background: #673ab7; color: white; }
+
+  /* Presupuestos */
+  .presupuesto-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .presupuesto-item .pi-info h3 { font-size: 1em; color: #333; margin-bottom: 4px; }
+  .presupuesto-item .pi-info p { font-size: 0.85em; color: #666; }
+  .presupuesto-item .pi-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .presupuesto-item .pi-actions button { padding: 6px 12px; font-size: 0.8em; }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-left: 8px;
+  }
+  .status-pendiente { background: #fff3e0; color: #e65100; }
+  .status-aprobado { background: #e8f5e9; color: #2e7d32; }
+  .status-rechazado { background: #ffebee; color: #c62828; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .modal-header {
+    background: linear-gradient(135deg, #673ab7, #512da8);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .modal-header h2 { font-size: 1.3em; }
+  .close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    min-height: 35px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.2s;
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.35); }
+  .modal-body { padding: 25px; }
+  .admin-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+  }
+  .tab-btn.active { color: #673ab7; border-bottom-color: #673ab7; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .price-editor {
+    display: grid;
+    grid-template-columns: 1fr 150px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .price-editor label { font-size: 0.9em; color: #444; }
+  .price-editor input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: right;
+  }
+  .search-box {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    margin-bottom: 15px;
+  }
+  .alert { padding: 12px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em; }
+  .alert-info { background: #e3f2fd; color: #1565c0; border-left: 4px solid #1976d2; }
+  .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; }
+  .alert-warning { background: #fff3e0; color: #e65100; border-left: 4px solid #fb8c00; }
+  .alert-error { background: #ffebee; color: #c62828; border-left: 4px solid #e53935; }
+
+  .logo-upload-area {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .logo-preview {
+    width: 120px; height: 120px;
+    border-radius: 12px;
+    background: white;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .logo-preview img { width: 100%; height: 100%; object-fit: contain; }
+  .logo-preview .placeholder { color: #999; font-size: 0.85em; text-align: center; padding: 10px; }
+  .logo-controls { flex: 1; min-width: 200px; }
+  .logo-controls p { font-size: 0.85em; color: #666; margin-bottom: 10px; }
+
+  .color-picker-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+  .color-picker-item { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+  .color-picker-item label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; font-size: 0.9em; }
+  .color-input-wrapper { display: flex; gap: 10px; align-items: center; }
+  .color-input-wrapper input[type="color"] { width: 50px; height: 40px; border: none; border-radius: 6px; cursor: pointer; }
+  .color-input-wrapper input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; }
+
+  /* PWA Install Button */
+  .pwa-install-btn {
+    display: none;
+    background: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .pwa-install-btn:hover { background: #43a047; }
+
+  .print-area { display: none; }
+  @media print {
+    body { background: white; padding: 0; }
+    body > * { display: none !important; }
+    .print-area { display: block !important; padding: 20px; }
+    .print-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid var(--color-primary);
+      margin-bottom: 20px;
+    }
+    .print-header img { width: 80px; height: 80px; object-fit: contain; }
+    .print-header .ph-info h1 { color: var(--color-secondary); font-size: 1.5em; margin-bottom: 3px; }
+    .print-header .ph-info p { font-size: 0.85em; color: #555; margin: 2px 0; }
+    .print-area h2 { color: var(--color-secondary); margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    .print-area table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .print-area th, .print-area td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+    .print-area th { background: #f0f0f0; }
+    .print-area .total-final {
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--color-secondary);
+      color: white;
+      font-size: 1.3em;
+      text-align: right;
+      border-radius: 6px;
+    }
+    .print-footer {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+      font-size: 0.8em;
+      color: #666;
+      text-align: center;
+    }
+  }
+  @media (max-width: 600px) {
+    .field { flex-direction: column; align-items: stretch; }
+    .field .subtotal { text-align: left; }
+    .total-box .amount { font-size: 1.8em; }
+    .price-editor { grid-template-columns: 1fr; }
+    .color-picker-row { grid-template-columns: 1fr; }
+    .header-content { flex-direction: column; text-align: center; }
+    .company-info { text-align: center; }
+    .presupuesto-item { grid-template-columns: 1fr; }
+    .user-section {
+      position: static;
+      margin-top: 15px;
+      align-items: center;
+    }
+    .user-info { align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo"></div>
+    <h1 id="loginCompanyName">VAROMA</h1>
+    <p>Panel de Administración</p>
+    
+    <div class="login-form">
+      <input type="email" id="loginEmail" placeholder="Email de administrador" autocomplete="email">
+      <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password">
+      <button onclick="iniciarSesion()" class="btn-login">Ingresar</button>
+      <p id="loginError" class="login-error" style="display:none"></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div class="container" id="appContainer" style="display:none">
+  <header>
+    <div class="header-content">
+      <div class="company-logo" id="headerLogo">
+        <div class="placeholder"></div>
+      </div>
+      <div class="company-info">
+        <h1 id="headerCompanyName">VAROMA</h1>
+        <p id="headerCompanySlogan">Panel de Administración</p>
+      </div>
+      <div class="user-section">
+        <div class="user-info">
+          <span id="userEmail">admin@email.com</span>
+          <span class="version-tag" id="versionTag">Julio 2026</span>
+        </div>
+        <button class="btn-logout" onclick="cerrarSesion()">🚪 Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- DATOS CLIENTE -->
+    <div class="section">
+      <h2>👤 Datos del Cliente</h2>
+      <div class="field"><label>Nombre completo:</label><input type="text" id="clienteNombre"></div>
+      <div class="field"><label>Dirección de obra:</label><input type="text" id="clienteDireccion"></div>
+      <div class="field"><label>Teléfono:</label><input type="tel" id="clienteTel"></div>
+      <div class="field"><label>Email:</label><input type="email" id="clienteEmail"></div>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <div class="section">
+      <h2>🔧 Mantenimiento</h2>
+      <div class="field"><label>Visita ocular</label><label>Sin costo</label></div>
+      <div class="field"><label>Visita básica (mínimo) <span class="price-hint" data-price="visita"></span></label><input type="checkbox" id="visita" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_visita">$0</span></div>
+      <div class="field"><label>Visita de urgencia <span class="price-hint" data-price="urgencia"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Lun-Vie desde 20:00hs; Sáb/Dom/Feriados 24hs</small></label><input type="checkbox" id="urgencia" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_urgencia">$0</span></div>
+      <div class="field"><label>Cableado o recableado por boca <span class="price-hint" data-price="cabNuevo1"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">No incluye canalización</small></label><input type="number" id="cabNuevo1" value="0" min="0"><span class="subtotal" id="st_cabNuevo1">$0</span></div>
+    </div>
+
+    <!-- OBRA -->
+    <div class="section">
+      <h2>🏗️ Obra</h2>
+      <div class="field"><label>Boca embutida <span class="price-hint" data-price="bocaEmb"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Especificar el N° de bocas</small></label><input type="number" id="bocaEmb" value="0" min="0" placeholder="N° bocas"><span class="subtotal" id="st_bocaEmb">$0</span></div>
+      <div class="field"><label>Boca vista <span class="price-hint" data-price="bocaVis"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Especificar el N° de bocas</small></label><input type="number" id="bocaVis" value="0" min="0" placeholder="N° bocas"><span class="subtotal" id="st_bocaVis">$0</span></div>
+      <div class="field"><label>Presupuesto de materiales y croquis <span class="price-hint" data-price="materialesPresupuesto"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Se descuenta al aceptar el presupuesto</small></label><input type="checkbox" id="materialesPresupuesto" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_materialesPresupuesto">$0</span></div>
+      <div class="field"><label>Tablero Monofásico (1 ID + 1 TM) <span class="price-hint" data-price="tpMono"></span></label><input type="number" id="tpMono" value="0" min="0"><span class="subtotal" id="st_tpMono">$0</span></div>
+      <div class="field"><label>Zanjeado por metro lineal (Tierra) <span class="price-hint" data-price="subTierra"></span></label><input type="number" id="subTierra" value="0" min="0"><span class="subtotal" id="st_subTierra">$0</span></div>
+      <div class="field"><label>Zanjeado por metro lineal (Hormigón) <span class="price-hint" data-price="subPiso"></span></label><input type="number" id="subPiso" value="0" min="0"><span class="subtotal" id="st_subPiso">$0</span></div>
+      <div class="field"><label>Colocación de artefacto simple <span class="price-hint" data-price="aplSimple"></span></label><input type="number" id="aplSimple" value="0" min="0"><span class="subtotal" id="st_aplSimple">$0</span></div>
+      <div class="field"><label>Colocación de artefacto complejo (precio base) <span class="price-hint" data-price="aplComple"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Consultar según complejidad</small></label><input type="number" id="aplComple" value="0" min="0"><span class="subtotal" id="st_aplComple">$0</span></div>
+      <div class="field"><label>Pilastra <span class="price-hint" data-price="pilar"></span></label><input type="number" id="pilar" value="0" min="0"><span class="subtotal" id="st_pilar">$0</span></div>
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div class="section" style="border-left-color:#2196f3">
+      <h2>💬 Observaciones</h2>
+      <div class="field" style="flex-direction:column;align-items:stretch">
+        <label style="min-width:auto;margin-bottom:8px">Observaciones del presupuesto:</label>
+        <textarea id="observaciones" placeholder="Detalles adicionales sobre el trabajo..." style="width:100%;min-height:100px;padding:12px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:0.95em;resize:vertical"></textarea>
+      </div>
+    </div>
+    
+    <!-- TOTALES -->
+    <div class="total-box">
+      <div class="label">TOTAL ESTIMADO</div>
+      <div class="amount" id="total">$0</div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-send" onclick="enviarPresupuesto()">📤 Guardar Presupuesto</button>
+      <button class="btn-print" onclick="imprimir()">🖨️ Imprimir / PDF</button>
+      <button class="btn-admin" onclick="abrirAdmin()">⚙️ Panel Admin</button>
+      <button class="btn-clear" onclick="limpiar()">🗑️ Limpiar</button>
+    </div>
+
+    <!-- Botón de instalación PWA -->
+    <div style="text-align:center;margin-top:20px">
+      <button class="pwa-install-btn" id="pwaInstallBtn" onclick="instalarPWA()">📱 Instalar en el celular</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚙️ Panel de Administración</h2>
+      <button class="close-btn" onclick="cerrarAdmin()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-tabs">
+        <button class="tab-btn active" onclick="cambiarTab(event,'tab-recibidos')">📥 Presupuestos</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-brand')">🏢 Mi Empresa</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-edit')">✏️ Precios</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-backup')">💾 Backup</button>
+      </div>
+
+      <div class="tab-content active" id="tab-recibidos">
+        <div class="alert alert-info">📥 Presupuestos recibidos de clientes</div>
+        <div id="listaPresupuestos">Cargando...</div>
+      </div>
+
+      <div class="tab-content" id="tab-brand">
+        <div class="alert alert-info">🏢 Configurá los datos de tu empresa.</div>
+        <h3 style="margin-bottom:10px;color:#444">🖼️ Logo</h3>
+        <div class="logo-upload-area">
+          <div class="logo-preview" id="logoPreview"><div class="placeholder">Sin logo</div></div>
+          <div class="logo-controls">
+            <p>Subí tu logo (PNG, JPG, SVG). Máximo 2MB.</p>
+            <input type="file" id="logoInput" accept="image/*" onchange="subirLogo(event)" style="margin-bottom:10px">
+            <br><button class="btn-secondary" style="padding:8px 14px;font-size:0.85em" onclick="quitarLogo()">🗑️ Quitar logo</button>
+          </div>
+        </div>
+        <h3 style="margin:20px 0 10px;color:#444">📝 Datos de la empresa</h3>
+        <div class="field"><label>Nombre:</label><input type="text" id="empNombre"></div>
+        <div class="field"><label>Eslogan:</label><input type="text" id="empSlogan"></div>
+        <div class="field"><label>CUIT:</label><input type="text" id="empCuit"></div>
+        <div class="field"><label>Dirección:</label><input type="text" id="empDireccion"></div>
+        <div class="field"><label>Teléfono:</label><input type="tel" id="empTelefono"></div>
+        <div class="field"><label>Email:</label><input type="email" id="empEmail"></div>
+        <div class="field"><label>Sitio web:</label><input type="text" id="empWeb"></div>
+        <div class="field"><label>Instagram / Redes:</label><input type="text" id="empRedes"></div>
+        <h3 style="margin:20px 0 10px;color:#444">🎨 Colores de marca</h3>
+        <div class="color-picker-row">
+          <div class="color-picker-item">
+            <label>Color principal</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="colorPrimary" value="#ff9800" onchange="actualizarColor('primary', this.value)">
+              <input type="text" id="colorPrimaryText" value="#ff9800" onchange="actualizarColor('primary', this.value)">
+            </div>
+          </div>
+          <div class="color-picker-item">
+            <label>Color secundario</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="colorSecondary" value="#1e3c72" onchange="actualizarColor('secondary', this.value)">
+              <input type="text" id="colorSecondaryText" value="#1e3c72" onchange="actualizarColor('secondary', this.value)">
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn-calc" onclick="guardarEmpresa()">💾 Guardar</button>
+          <button class="btn-secondary" onclick="restaurarEmpresa()">🔄 Restaurar</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-edit">
+        <div class="alert alert-warning">⚠️ Editá los precios de mano de obra.</div>
+        <input type="text" class="search-box" id="searchPrices" placeholder="🔍 Buscar..." oninput="filtrarPrecios()">
+        <div id="priceList"></div>
+        <div class="btn-group" style="margin-top:20px">
+          <button class="btn-calc" onclick="guardarPrecios()">💾 Guardar</button>
+          <button class="btn-secondary" onclick="restaurarDefault()">🔄 Restaurar</button>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-backup">
+        <div class="alert alert-info">💾 Exportá/importá tu configuración.</div>
+        <div class="field" style="background:#f8f9fa">
+          <label>Versión:</label>
+          <input type="text" id="versionInput" style="flex:1">
+        </div>
+        <div class="btn-group" style="margin-top:20px">
+          <button class="btn-calc" onclick="exportarJSON()">📤 Exportar</button>
+          <button class="btn-secondary" onclick="document.getElementById('jsonInput').click()">📥 Importar</button>
+          <input type="file" id="jsonInput" accept=".json" style="display:none" onchange="importarJSON(event)">
+        </div>
+        <div id="backupLog" style="margin-top:15px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PRESUPUESTO -->
+<div class="modal-overlay" id="detalleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📋 Detalle del Presupuesto</h2>
+      <button class="close-btn" onclick="cerrarDetalle()">✕</button>
+    </div>
+    <div class="modal-body" id="detalleContenido">Cargando...</div>
+  </div>
+</div>
+
+<div class="print-area" id="printArea"></div>
+
+<script>
+  // PWA Service Worker
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE_NAME = 'varoma-admin-v1';
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { clients.claim(); });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+            const clone = resp.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+            return resp;
+          }).catch(() => caches.match('./')))
+        );
+      });
+    `;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(err => console.log('SW error:', err));
+  }
+
+  // PWA Install
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('pwaInstallBtn').style.display = 'inline-block';
+  });
+
+  function instalarPWA() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          document.getElementById('pwaInstallBtn').style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    }
+  }
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCR8Ldqs-3LcE9X5Wr74I2z_j0tb0E_Cj8",
+    authDomain: "presupuesto-varoma.firebaseapp.com",
+    projectId: "presupuesto-varoma",
+    storageBucket: "presupuesto-varoma.firebasestorage.app",
+    messagingSenderId: "1046113235532",
+    appId: "1:1046113235532:web:1fc07447284cf0615f3ae9"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  let currentUser = null;
+
+  // ============ DATOS DE EMPRESA ============
+  const EMPRESA_DEFAULT = {
+    nombre: 'VAROMA',
+    slogan: 'Mano de obra',
+    cuit: '', direccion: '', telefono: '', email: '', web: '', redes: '',
+    logo: '',
+    colorPrimary: '#ff9800',
+    colorSecondary: '#1e3c72'
+  };
+  let EMPRESA = JSON.parse(localStorage.getItem('empresaConfig')) || {...EMPRESA_DEFAULT};
+
+  // ============ PRECIOS ============
+  const PRECIOS_DEFAULT = {
+    visita: 40000, urgencia: 80000, cabNuevo1: 20000,
+    bocaEmb: 40000, bocaVis: 35000, materialesPresupuesto: 20000,
+    subTierra: 10000, subPiso: 15000,
+    tpMono: 100000,
+    aplSimple: 10000, aplComple: 50000,
+    pilar: 300000,
+  };
+  let PRECIOS = JSON.parse(localStorage.getItem('preciosAAIERIC')) || {...PRECIOS_DEFAULT};
+  let VERSION = localStorage.getItem('versionAAIERIC') || 'Julio 2026';
+
+  const ETIQUETAS = {
+    visita: "Visita básica", urgencia: "Visita de urgencia", cabNuevo1: "Cableado/recableado por boca",
+    subTierra: "Zanjeo por metro - Tierra", subPiso: "Zanjeo por metro - Hormigón",
+    tpMono: "Tablero Monofásico (1 ID + 1 TM)",
+    bocaEmb: "Boca embutida", bocaVis: "Boca vista",
+    materialesPresupuesto: "Presupuesto de materiales + croquis",
+    aplSimple: "Colocación artefacto simple", aplComple: "Colocación artefacto complejo",
+    pilar: "Pilastra",
+  };
+
+  // ============ UTILIDADES ============
+  function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+  function generarId() {
+    const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) id += chars[Math.floor(Math.random() * chars.length)];
+    return id;
+  }
+
+  // ============ AUTENTICACIÓN ============
+  async function iniciarSesion() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    errorEl.style.display = 'none';
+
+    if (!email || !password) {
+      errorEl.textContent = '⚠️ Completá email y contraseña';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const cred = await auth.signInWithEmailAndPassword(email, password);
+      currentUser = cred.user;
+      mostrarApp();
+    } catch (err) {
+      let msg = '❌ Error al ingresar';
+      if (err.code === 'auth/user-not-found') msg = '❌ Usuario no encontrado';
+      else if (err.code === 'auth/wrong-password') msg = '❌ Contraseña incorrecta';
+      else if (err.code === 'auth/invalid-email') msg = '❌ Email inválido';
+      else if (err.code === 'auth/too-many-requests') msg = '❌ Demasiados intentos. Esperá unos minutos.';
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  async function cerrarSesion() {
+    if (!confirm('¿Cerrar sesión?')) return;
+    try {
+      await auth.signOut();
+    } catch (err) {
+      console.error(err);
+    }
+    currentUser = null;
+    location.reload();
+  }
+
+  function mostrarApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+    document.getElementById('userEmail').textContent = '👑 ' + currentUser.email;
+    aplicarConfigEmpresa();
+    actualizarEtiquetas();
+    calcular();
+  }
+
+  // Detectar sesión activa al cargar
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      currentUser = user;
+      mostrarApp();
+    }
+  });
+
+  // ============ EMPRESA ============
+  function aplicarConfigEmpresa() {
+    document.documentElement.style.setProperty('--color-primary', EMPRESA.colorPrimary);
+    document.documentElement.style.setProperty('--color-primary-dark', shadeColor(EMPRESA.colorPrimary, -15));
+    document.documentElement.style.setProperty('--color-secondary', EMPRESA.colorSecondary);
+    document.documentElement.style.setProperty('--color-secondary-dark', shadeColor(EMPRESA.colorSecondary, 15));
+    document.getElementById('themeColorMeta').setAttribute('content', EMPRESA.colorPrimary);
+    document.getElementById('headerCompanyName').textContent = EMPRESA.nombre || 'VAROMA';
+    document.getElementById('loginCompanyName').textContent = EMPRESA.nombre || 'VAROMA';
+    document.getElementById('headerCompanySlogan').textContent = EMPRESA.slogan || 'Panel de Administración';
+    const logoDiv = document.getElementById('headerLogo');
+    logoDiv.innerHTML = EMPRESA.logo ? `<img src="${EMPRESA.logo}" alt="Logo">` : '<div class="placeholder"></div>';
+    document.getElementById('empNombre').value = EMPRESA.nombre || '';
+    document.getElementById('empSlogan').value = EMPRESA.slogan || '';
+    document.getElementById('empCuit').value = EMPRESA.cuit || '';
+    document.getElementById('empDireccion').value = EMPRESA.direccion || '';
+    document.getElementById('empTelefono').value = EMPRESA.telefono || '';
+    document.getElementById('empEmail').value = EMPRESA.email || '';
+    document.getElementById('empWeb').value = EMPRESA.web || '';
+    document.getElementById('empRedes').value = EMPRESA.redes || '';
+    document.getElementById('colorPrimary').value = EMPRESA.colorPrimary;
+    document.getElementById('colorPrimaryText').value = EMPRESA.colorPrimary;
+    document.getElementById('colorSecondary').value = EMPRESA.colorSecondary;
+    document.getElementById('colorSecondaryText').value = EMPRESA.colorSecondary;
+    const preview = document.getElementById('logoPreview');
+    preview.innerHTML = EMPRESA.logo ? `<img src="${EMPRESA.logo}" alt="Logo">` : '<div class="placeholder">Sin logo</div>';
+  }
+
+  function shadeColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+  }
+
+  function subirLogo(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert('⚠️ Máximo 2MB'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      EMPRESA.logo = ev.target.result;
+      document.getElementById('logoPreview').innerHTML = `<img src="${EMPRESA.logo}" alt="Logo">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function quitarLogo() {
+    EMPRESA.logo = '';
+    document.getElementById('logoPreview').innerHTML = '<div class="placeholder">Sin logo</div>';
+    document.getElementById('logoInput').value = '';
+  }
+
+  function actualizarColor(tipo, valor) {
+    if (!/^#[0-9A-Fa-f]{6}$/.test(valor)) return;
+    if (tipo === 'primary') {
+      EMPRESA.colorPrimary = valor;
+      document.getElementById('colorPrimary').value = valor;
+      document.getElementById('colorPrimaryText').value = valor;
+      document.documentElement.style.setProperty('--color-primary', valor);
+      document.documentElement.style.setProperty('--color-primary-dark', shadeColor(valor, -15));
+    } else {
+      EMPRESA.colorSecondary = valor;
+      document.getElementById('colorSecondary').value = valor;
+      document.getElementById('colorSecondaryText').value = valor;
+      document.documentElement.style.setProperty('--color-secondary', valor);
+      document.documentElement.style.setProperty('--color-secondary-dark', shadeColor(valor, 15));
+    }
+  }
+
+  function guardarEmpresa() {
+    EMPRESA.nombre = document.getElementById('empNombre').value.trim();
+    EMPRESA.slogan = document.getElementById('empSlogan').value.trim();
+    EMPRESA.cuit = document.getElementById('empCuit').value.trim();
+    EMPRESA.direccion = document.getElementById('empDireccion').value.trim();
+    EMPRESA.telefono = document.getElementById('empTelefono').value.trim();
+    EMPRESA.email = document.getElementById('empEmail').value.trim();
+    EMPRESA.web = document.getElementById('empWeb').value.trim();
+    EMPRESA.redes = document.getElementById('empRedes').value.trim();
+    localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+    aplicarConfigEmpresa();
+    alert('✅ Configuración guardada');
+  }
+
+  function restaurarEmpresa() {
+    if (!confirm('¿Restaurar configuración?')) return;
+    EMPRESA = {...EMPRESA_DEFAULT};
+    localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+    aplicarConfigEmpresa();
+  }
+
+  function actualizarEtiquetas() {
+    document.querySelectorAll('[data-price]').forEach(el => {
+      const key = el.getAttribute('data-price');
+      if (PRECIOS[key] !== undefined) el.textContent = fmt(PRECIOS[key]);
+    });
+    document.getElementById('versionTag').textContent = VERSION;
+  }
+
+  // ============ CÁLCULO ============
+  function calcular() {
+    let totalMO = 0;
+    const detalles = [];
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (!input) continue;
+      const cant = input.type === 'checkbox' ? (input.checked ? 1 : 0) : (parseFloat(input.value) || 0);
+      const sub = cant * PRECIOS[key];
+      const stEl = document.getElementById('st_' + key);
+      if (stEl) stEl.textContent = fmt(sub);
+      if (cant > 0) {
+        detalles.push({ desc: ETIQUETAS[key], cant, unidad: 'ud.', precio: PRECIOS[key], sub });
+      }
+      totalMO += sub;
+    }
+    document.getElementById('total').textContent = fmt(totalMO);
+    generarImpresion(detalles, totalMO);
+  }
+
+  // ============ IMPRESIÓN ============
+  function generarImpresion(detallesMO, totalMO) {
+    const cliente = document.getElementById('clienteNombre').value || '(Sin nombre)';
+    const dir = document.getElementById('clienteDireccion').value || '';
+    const tel = document.getElementById('clienteTel').value || '';
+    const fecha = new Date().toLocaleDateString('es-AR');
+
+    let headerHTML = '';
+    if (EMPRESA.logo || EMPRESA.nombre) {
+      headerHTML = '<div class="print-header">';
+      if (EMPRESA.logo) headerHTML += `<img src="${EMPRESA.logo}" alt="Logo">`;
+      headerHTML += '<div class="ph-info">';
+      if (EMPRESA.nombre) headerHTML += `<h1>${EMPRESA.nombre}</h1>`;
+      if (EMPRESA.slogan) headerHTML += `<p><em>${EMPRESA.slogan}</em></p>`;
+      const contactLines = [];
+      if (EMPRESA.direccion) contactLines.push(`📍 ${EMPRESA.direccion}`);
+      if (EMPRESA.telefono) contactLines.push(`📞 ${EMPRESA.telefono}`);
+      if (EMPRESA.email) contactLines.push(`✉️ ${EMPRESA.email}`);
+      if (EMPRESA.web) contactLines.push(`🌐 ${EMPRESA.web}`);
+      if (EMPRESA.redes) contactLines.push(`📱 ${EMPRESA.redes}`);
+      if (EMPRESA.cuit) contactLines.push(`CUIT: ${EMPRESA.cuit}`);
+      if (contactLines.length) headerHTML += `<p>${contactLines.join(' · ')}</p>`;
+      headerHTML += '</div></div>';
+    }
+
+    let filasMO = '';
+    detallesMO.forEach(d => {
+      filasMO += `<tr><td>${d.desc}</td><td style="text-align:center">${d.cant} ${d.unidad}</td><td style="text-align:right">${fmt(d.precio)}</td><td style="text-align:right">${fmt(d.sub)}</td></tr>`;
+    });
+
+    let html = headerHTML;
+    html += `<h1 style="color:var(--color-secondary);margin-top:10px">Presupuesto de Obra Eléctrica</h1>
+      <p><strong>Fecha:</strong> ${fecha}</p>
+      <p><strong>Cliente:</strong> ${cliente}</p>
+      ${dir ? `<p><strong>Dirección:</strong> ${dir}</p>` : ''}
+      ${tel ? `<p><strong>Teléfono:</strong> ${tel}</p>` : ''}`;
+
+    if (detallesMO.length > 0) {
+      html += `<h2>🔧 Mano de Obra</h2>
+        <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasMO}</tbody></table>`;
+    }
+    
+    const observaciones = document.getElementById('observaciones').value.trim();
+    if (observaciones) {
+      html += `<div style="margin-top:20px;padding:15px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:6px">
+        <h3 style="color:#e65100;margin-bottom:8px;font-size:1em">💬 Observaciones</h3>
+        <p style="white-space:pre-wrap;color:#333;font-size:0.9em;line-height:1.5">${observaciones.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+      </div>`;
+    }
+    
+    html += `<div class="total-final">TOTAL: ${fmt(totalMO)}</div>`;
+    
+    // Secciones de firma y sello por porcentaje de pago
+    html += `
+      <div style="margin-top:40px;padding:20px;background:#f8f9fa;border-radius:8px">
+        <h3 style="color:var(--color-secondary);margin-bottom:20px;text-align:center">📋 Control de Pagos</h3>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px">
+          <div style="background:white;padding:15px;border-radius:6px;border:2px solid #ff9800">
+            <h4 style="color:#f57c00;margin-bottom:10px;text-align:center;font-size:1.1em">💵 50% - Anticipo</h4>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalMO * 0.5))}</strong></p>
+            <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
+            <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello del Cliente</p>
+            <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">Fecha: ___/___/______</div>
+          </div>
+          <div style="background:white;padding:15px;border-radius:6px;border:2px solid #2196f3">
+            <h4 style="color:#1976d2;margin-bottom:10px;text-align:center;font-size:1.1em">💵 75% - Avance</h4>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(Math.round(totalMO * 0.75))}</strong></p>
+            <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
+            <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello del Cliente</p>
+            <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">Fecha: ___/___/______</div>
+          </div>
+          <div style="background:white;padding:15px;border-radius:6px;border:2px solid #4caf50">
+            <h4 style="color:#2e7d32;margin-bottom:10px;text-align:center;font-size:1.1em">✅ 100% - Total</h4>
+            <p style="font-size:0.85em;color:#666;margin-bottom:15px">Monto: <strong>${fmt(totalMO)}</strong></p>
+            <div style="border-top:1px solid #333;margin:30px 10px 5px 10px;height:40px"></div>
+            <p style="font-size:0.75em;text-align:center;color:#666">Firma y Sello del Cliente</p>
+            <div style="margin-top:15px;font-size:0.75em;color:#999;text-align:center">Fecha: ___/___/______</div>
+          </div>
+        </div>
+        
+        <div style="margin-top:20px;padding:15px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:6px">
+          <p style="font-size:0.85em;color:#666;margin:0">
+            <strong>Condiciones de pago:</strong> El trabajo comenzará una vez abonado el 50% en concepto de anticipo. 
+            El 75% se abonará al finalizar la canalización y cableado. El 100% se abonará al finalizar la obra y entrega de certificados.
+          </p>
+        </div>
+      </div>
+    `;
+    
+    html += `<div class="print-footer">
+      <p>Presupuesto válido por 15 días. Sujeto a variación de precio. Ante cualquier consulta comunicarse al 2604679355</p>
+      ${EMPRESA.nombre ? `<p style="margin-top:8px"><strong>${EMPRESA.nombre}</strong>${EMPRESA.cuit ? ' · CUIT: ' + EMPRESA.cuit : ''}</p>` : ''}
+    </div>`;
+
+    document.getElementById('printArea').innerHTML = html;
+  }
+
+  function imprimir() { calcular(); window.print(); }
+
+  function limpiar() {
+    if (!confirm('¿Limpiar todos los campos?')) return;
+    document.querySelectorAll('.content input[type="number"]').forEach(i => i.value = 0);
+    document.querySelectorAll('.content input[type="checkbox"]').forEach(i => i.checked = false);
+    document.querySelectorAll('.content input[type="text"], .content input[type="tel"], .content input[type="email"]').forEach(i => {
+      if (!i.id.startsWith('emp') && !i.id.startsWith('color') && !i.id.startsWith('search') && !i.id.startsWith('version')) i.value = '';
+    });
+    const obs = document.getElementById('observaciones');
+    if (obs) obs.value = '';
+    calcular();
+  }
+
+  // ============ ENVIAR PRESUPUESTO ============
+  async function enviarPresupuesto() {
+    const cliente = document.getElementById('clienteNombre').value.trim();
+    const tel = document.getElementById('clienteTel').value.trim();
+
+    if (!cliente) { alert('⚠️ Ingresá el nombre del cliente'); document.getElementById('clienteNombre').focus(); return; }
+    if (!tel) { alert('⚠️ Ingresá el teléfono del cliente'); document.getElementById('clienteTel').focus(); return; }
+
+    const total = parseInt(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
+    if (total === 0) { if (!confirm('No seleccionaste ningún servicio. ¿Guardar igual?')) return; }
+
+    const datos = {
+      clienteNombre: cliente,
+      clienteDireccion: document.getElementById('clienteDireccion').value,
+      clienteTel: tel,
+      clienteEmail: document.getElementById('clienteEmail').value,
+      observaciones: document.getElementById('observaciones').value,
+      campos: {},
+      total: total,
+      fechaCreacion: new Date().toISOString(),
+      estado: 'pendiente',
+      version: VERSION,
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      creadoPorAdmin: true
+    };
+
+    for (const key in PRECIOS) {
+      const input = document.getElementById(key);
+      if (input) {
+        datos.campos[key] = input.type === 'checkbox' ? input.checked : input.value;
+      }
+    }
+
+    const id = generarId();
+    datos.id = id;
+
+    try {
+      await db.collection('presupuestos').doc(id).set(datos);
+      alert(`✅ Presupuesto guardado correctamente\n\nID: ${id}\nCliente: ${cliente}\nTotal: ${fmt(total)}`);
+      limpiar();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error('Error al guardar:', err);
+      alert('❌ Error al guardar: ' + err.message);
+    }
+  }
+
+  // ============ ADMIN: VER PRESUPUESTOS ============
+  async function abrirAdmin() {
+    document.getElementById('adminModal').classList.add('active');
+    document.getElementById('versionInput').value = VERSION;
+    renderizarEditorPrecios();
+    aplicarConfigEmpresa();
+    cargarPresupuestosRecibidos();
+  }
+
+  function cerrarAdmin() { document.getElementById('adminModal').classList.remove('active'); }
+
+  async function cargarPresupuestosRecibidos() {
+    document.getElementById('listaPresupuestos').innerHTML = '<p>Cargando presupuestos...</p>';
+
+    try {
+      const snapshot = await db.collection('presupuestos').orderBy('fechaCreacion', 'desc').limit(100).get();
+      
+      if (snapshot.empty) {
+        document.getElementById('listaPresupuestos').innerHTML = '<div class="alert alert-info">No hay presupuestos todavía.</div>';
+        return;
+      }
+
+      let html = '';
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const fecha = new Date(d.fechaCreacion).toLocaleString('es-AR');
+        const estadoClass = d.estado === 'aprobado' ? 'status-aprobado' : d.estado === 'rechazado' ? 'status-rechazado' : 'status-pendiente';
+        const estadoText = d.estado === 'aprobado' ? 'Aprobado' : d.estado === 'rechazado' ? 'Rechazado' : 'Pendiente';
+        const creadoPor = d.creadoPorAdmin ? '👑 Admin' : '👤 Cliente';
+        
+        html += `
+          <div class="presupuesto-item">
+            <div class="pi-info">
+              <h3>${d.clienteNombre || '(Sin nombre)'} <span class="status-badge ${estadoClass}">${estadoText}</span></h3>
+              <p>📅 ${fecha} · 💰 ${fmt(d.total || 0)} · 🆔 ${d.id}</p>
+              <p>📝 Creado por: ${creadoPor}</p>
+              ${d.userEmail ? `<p>👤 ${d.userEmail}</p>` : ''}
+              ${d.clienteTel ? `<p>📞 ${d.clienteTel}</p>` : ''}
+              ${d.clienteEmail ? `<p>✉️ ${d.clienteEmail}</p>` : ''}
+              ${d.clienteDireccion ? `<p>📍 ${d.clienteDireccion}</p>` : ''}
+            </div>
+            <div class="pi-actions">
+              <button class="btn-view" onclick="verDetallePresupuesto('${d.id}')">👁️ Ver</button>
+              ${d.clienteTel ? `<button class="btn-wa" onclick="contactarWhatsApp('${d.clienteTel}', '${(d.clienteNombre || '').replace(/'/g, "\\'")}')">📱 WhatsApp</button>` : ''}
+              <button class="btn-calc" onclick="cambiarEstado('${d.id}', 'aprobado')">✅</button>
+              <button class="btn-clear" onclick="cambiarEstado('${d.id}', 'rechazado')">❌</button>
+              <button class="btn-clear" onclick="eliminarPresupuesto('${d.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('listaPresupuestos').innerHTML = html;
+    } catch (err) {
+      document.getElementById('listaPresupuestos').innerHTML = `<div class="alert alert-error">❌ Error: ${err.message}</div>`;
+    }
+  }
+
+  // ============ DETALLE PRESUPUESTO ============
+  async function verDetallePresupuesto(id) {
+    document.getElementById('detalleModal').classList.add('active');
+    document.getElementById('detalleContenido').innerHTML = '<p>Cargando...</p>';
+
+    try {
+      const doc = await db.collection('presupuestos').doc(id).get();
+      if (!doc.exists) {
+        document.getElementById('detalleContenido').innerHTML = '<div class="alert alert-error">❌ Presupuesto no encontrado</div>';
+        return;
+      }
+
+      const d = doc.data();
+      const fecha = new Date(d.fechaCreacion).toLocaleString('es-AR');
+
+      let html = `
+        <h3 style="margin-bottom:15px">👤 Datos del Cliente</h3>
+        <p><strong>Nombre:</strong> ${d.clienteNombre || '(Sin nombre)'}</p>
+        <p><strong>Teléfono:</strong> ${d.clienteTel || '(No proporcionado)'}</p>
+        <p><strong>Email:</strong> ${d.clienteEmail || '(No proporcionado)'}</p>
+        <p><strong>Dirección:</strong> ${d.clienteDireccion || '(No proporcionada)'}</p>
+        <p><strong>Fecha:</strong> ${fecha}</p>
+        <p><strong>ID:</strong> ${d.id}</p>
+        <p><strong>Estado:</strong> ${d.estado || 'pendiente'}</p>
+        <p><strong>Creado por:</strong> ${d.creadoPorAdmin ? '👑 Admin' : '👤 Cliente'}</p>
+      `;
+
+      if (d.observaciones) {
+        html += `<h3 style="margin:20px 0 10px">💬 Observaciones</h3>
+          <div style="background:#fff3e0;padding:15px;border-radius:6px;white-space:pre-wrap">${d.observaciones.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+      }
+
+      html += `<h3 style="margin:20px 0 10px">🔧 Servicios Solicitados</h3>`;
+      
+      let totalCalculado = 0;
+      for (const key in d.campos) {
+        const valor = d.campos[key];
+        const esCheckbox = typeof valor === 'boolean';
+        const cantidad = esCheckbox ? (valor ? 1 : 0) : parseFloat(valor) || 0;
+        
+        if (cantidad > 0 && PRECIOS[key]) {
+          const sub = cantidad * PRECIOS[key];
+          totalCalculado += sub;
+          html += `<p>${ETIQUETAS[key] || key}: ${cantidad} x ${fmt(PRECIOS[key])} = <strong>${fmt(sub)}</strong></p>`;
+        }
+      }
+
+      html += `<div style="margin-top:20px;padding:15px;background:#e8f5e9;border-radius:6px;text-align:right">
+        <strong>TOTAL: ${fmt(totalCalculado)}</strong>
+      </div>`;
+
+      if (d.clienteTel) {
+        html += `<div class="btn-group" style="margin-top:20px">
+          <button class="btn-wa" onclick="contactarWhatsApp('${d.clienteTel}', '${(d.clienteNombre || '').replace(/'/g, "\\'")}')">📱 Contactar por WhatsApp</button>
+        </div>`;
+      }
+
+      document.getElementById('detalleContenido').innerHTML = html;
+    } catch (err) {
+      document.getElementById('detalleContenido').innerHTML = `<div class="alert alert-error">❌ Error: ${err.message}</div>`;
+    }
+  }
+
+  function cerrarDetalle() { document.getElementById('detalleModal').classList.remove('active'); }
+
+  async function cambiarEstado(id, nuevoEstado) {
+    try {
+      await db.collection('presupuestos').doc(id).update({ estado: nuevoEstado });
+      cargarPresupuestosRecibidos();
+      alert(`✅ Estado cambiado a: ${nuevoEstado}`);
+    } catch (err) {
+      alert('❌ Error: ' + err.message);
+    }
+  }
+
+  async function eliminarPresupuesto(id) {
+    if (!confirm('¿Eliminar este presupuesto?')) return;
+    try {
+      await db.collection('presupuestos').doc(id).delete();
+      cargarPresupuestosRecibidos();
+    } catch (err) {
+      alert('❌ Error: ' + err.message);
+    }
+  }
+
+  function contactarWhatsApp(telefono, nombre) {
+    const mensaje = `Hola ${nombre}, te contacto respecto al presupuesto que enviaste. ¿Podemos coordinar una visita?`;
+    window.open(`https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+  }
+
+  // ============ ADMIN: CONFIGURACIÓN ============
+  function cambiarTab(e, tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    if (tabId === 'tab-brand') aplicarConfigEmpresa();
+    if (tabId === 'tab-recibidos') cargarPresupuestosRecibidos();
+  }
+
+  function renderizarEditorPrecios(filtro = '') {
+    const cont = document.getElementById('priceList');
+    cont.innerHTML = '';
+    const f = filtro.toLowerCase();
+    for (const key in PRECIOS) {
+      if (f && !ETIQUETAS[key].toLowerCase().includes(f)) continue;
+      const div = document.createElement('div');
+      div.className = 'price-editor';
+      div.innerHTML = `<label>${ETIQUETAS[key]}</label><input type="number" data-key="${key}" value="${PRECIOS[key]}" step="1">`;
+      cont.appendChild(div);
+    }
+  }
+
+  function filtrarPrecios() { renderizarEditorPrecios(document.getElementById('searchPrices').value); }
+
+  function guardarPrecios() {
+    document.querySelectorAll('#priceList input').forEach(inp => {
+      const key = inp.getAttribute('data-key');
+      const val = parseFloat(inp.value);
+      if (!isNaN(val) && val >= 0) PRECIOS[key] = val;
+    });
+    VERSION = document.getElementById('versionInput').value || VERSION;
+    localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+    localStorage.setItem('versionAAIERIC', VERSION);
+    actualizarEtiquetas(); calcular();
+    alert('✅ Precios guardados');
+  }
+
+  function restaurarDefault() {
+    if (!confirm('¿Restaurar valores?')) return;
+    PRECIOS = {...PRECIOS_DEFAULT}; VERSION = 'Julio 2026';
+    localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+    localStorage.setItem('versionAAIERIC', VERSION);
+    renderizarEditorPrecios(); actualizarEtiquetas(); calcular();
+  }
+
+  function exportarJSON() {
+    const data = { version: VERSION, fecha: new Date().toISOString(), precios: PRECIOS, empresa: EMPRESA };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `config_admin_${(EMPRESA.nombre || 'empresa').replace(/\s+/g,'_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importarJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.precios) PRECIOS = {...PRECIOS_DEFAULT, ...data.precios};
+        if (data.empresa) EMPRESA = {...EMPRESA_DEFAULT, ...data.empresa};
+        if (data.version) { VERSION = data.version; document.getElementById('versionInput').value = VERSION; }
+        localStorage.setItem('preciosAAIERIC', JSON.stringify(PRECIOS));
+        localStorage.setItem('empresaConfig', JSON.stringify(EMPRESA));
+        localStorage.setItem('versionAAIERIC', VERSION);
+        aplicarConfigEmpresa(); renderizarEditorPrecios(); actualizarEtiquetas(); calcular();
+        alert('✅ Configuración importada');
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Enter para login
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') iniciarSesion();
+    });
+    document.getElementById('loginEmail').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+    });
+  });
+
+  // Inicialización
+  aplicarConfigEmpresa();
+  document.querySelectorAll('input').forEach(input => input.addEventListener('input', calcular));
+  actualizarEtiquetas();
+  calcular();
+</script>
+</body>
+</html>
