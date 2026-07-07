@@ -508,9 +508,9 @@
       position: static;
       margin-top: 15px;
       align-items: center;
+    }
     .trabajo-item { grid-template-columns: 1fr; }
     .trabajo-item .tp-subtotal { text-align: left; }
-    }
     .user-info {
       align-items: center;
     }
@@ -856,7 +856,7 @@ const ADMIN_EMAILS = [
     try {
       const cred = await auth.signInWithEmailAndPassword(email, password);
       currentUser = cred.user;
-      esAdmin = ADMIN_EMAILS.includes(user.email);
+      esAdmin = ADMIN_EMAILS.includes(cred.user.email);
       esInvitado = false;
       mostrarApp();
     } catch (err) {
@@ -896,7 +896,7 @@ const ADMIN_EMAILS = [
       errorEl.style.display = 'block';
       return;
     }
-    if (email === ADMIN_EMAIL) {
+    if (ADMIN_EMAILS.includes(email)) {
       errorEl.textContent = '⚠️ Este email no está disponible';
       errorEl.style.display = 'block';
       return;
@@ -1195,7 +1195,6 @@ function calcular() {
       </div>`;
     }
     
-    const totalFinal = totalMO + totalTP;
     html += `<div class="total-final">TOTAL: ${fmt(totalFinal)}</div>`;
     
     // Secciones de firma y sello por porcentaje de pago
