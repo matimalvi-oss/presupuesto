@@ -698,7 +698,7 @@
     
     const userEmailEl = document.getElementById('userEmail');
     if (esInvitado) {
-      userEmailEl.textContent = '<i class="fas fa-user"></i> Invitado';
+      userEmailEl.textContent = <i class="fas fa-user"></i> 'Invitado';
     } else if (currentUser) {
       userEmailEl.textContent = <i class="fas fa-user"></i>  + currentUser.email;
     }
