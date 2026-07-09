@@ -661,7 +661,7 @@
       });
       currentUser = cred.user;
       esInvitado = false;
-      successEl.textContent = '<i class="fas fa-check-circle"></i> Cuenta creada. Ingresando...';
+      successEl.innerHTML = '<i class="fas fa-check-circle"></i> Cuenta creada. Ingresando...';
       successEl.style.display = 'block';
       setTimeout(() => mostrarApp(), 1000);
     } catch (err) {
@@ -698,9 +698,9 @@
     
     const userEmailEl = document.getElementById('userEmail');
     if (esInvitado) {
-      userEmailEl.textContent = <i class="fas fa-user"></i> 'Invitado';
+      userEmailEl.textContent = '<i class="fas fa-user"></i> Invitado';
     } else if (currentUser) {
-      userEmailEl.textContent = <i class="fas fa-user"></i>  + currentUser.email;
+      userEmailEl.textContent = '<i class="fas fa-user"></i>'  + currentUser.email;
     }
 
     // Mostrar botón "Mis Presupuestos" solo si está logueado
@@ -756,7 +756,7 @@
     document.getElementById('loginCompanyName').textContent = EMPRESA.nombre || 'VAROMA';
     document.getElementById('headerCompanySlogan').textContent = EMPRESA.slogan || 'Instalaciones eléctricas';
     const logoDiv = document.getElementById('headerLogo');
-    logoDiv.innerHTML = EMPRESA.logo ? `<img src="${EMPRESA.logo}" alt="Logo">` : '<div class="placeholder">⚡</div>';
+    logoDiv.innerHTML = EMPRESA.logo ? `<img src="${EMPRESA.logo}" alt="Logo">` : '<div class="placeholder"><i class="fa-solid fa-bolt"></i></div>';
   }
 
   function shadeColor(color, percent) {
@@ -793,7 +793,6 @@
       totalMO += sub;
     }
     document.getElementById('total').textContent = fmt(totalMO);
-    generarImpresion(detalles, totalMO);
   }
 
 
