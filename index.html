@@ -27,6 +27,62 @@
     padding: 20px;
     color: #333;
   }
+
+  /* Notificaciones personalizadas */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 10000;
+  animation: slideIn 0.3s ease-out;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+function mostrarNotificacion(mensaje, tipo = 'info') {
+  // Remover notificaciones anteriores
+  const notificacionesExistentes = document.querySelectorAll('.notification');
+  notificacionesExistentes.forEach(n => n.remove());
+  
+  const notif = document.createElement('div');
+  notif.className = `notification ${tipo}`;
+  notif.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'times-circle' : 'info-circle'}"></i> ${mensaje}`;
+  
+  document.body.appendChild(notif);
+  
+  // Auto-eliminar después de 4 segundos
+  setTimeout(() => {
+    notif.style.animation = 'slideIn 0.3s ease-out reverse';
+    setTimeout(() => notif.remove(), 300);
+  }, 4000);
+}
+    
+.notification.success {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+}
+
+.notification.error {
+  background: linear-gradient(135deg, #f44336, #da190b);
+}
+
+.notification.info {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
   
   /* LOGIN SCREEN */
   .login-screen {
@@ -814,8 +870,8 @@
     const cliente = document.getElementById('clienteNombre').value.trim();
     const tel = document.getElementById('clienteTel').value.trim();
 
-    if (!cliente) { alert('! Por favor ingresá tu nombre'); document.getElementById('clienteNombre').focus(); return; }
-    if (!tel) { alert('! Por favor ingresá tu teléfono'); document.getElementById('clienteTel').focus(); return; }
+    if (!cliente) { mostrarNotificacion('! Por favor ingresá tu nombre'); document.getElementById('clienteNombre').focus(); return; }
+    if (!tel) { mostrarNotificacion('! Por favor ingresá tu teléfono'); document.getElementById('clienteTel').focus(); return; }
 
     const total = parseInt(document.getElementById('total').textContent.replace(/[^0-9]/g, '')) || 0;
     if (total === 0) { if (!confirm('No seleccionaste ningún servicio. ¿Enviar igual?')) return; }
@@ -851,23 +907,23 @@
 
     try {
       await db.collection('presupuestos').doc(id).set(datos);
-      alert(`<i class="fas fa-check-circle"></i> ¡Presupuesto enviado correctamente!\n\nID: ${id}\n\nNos pondremos en contacto contigo a la brevedad.\n\nGracias por confiar en ${EMPRESA.nombre || 'VAROMA'}`);
+      mostrarNotificacion(`<i class="fas fa-check-circle"></i> ¡Presupuesto enviado correctamente!\n\nID: ${id}\n\nNos pondremos en contacto contigo a la brevedad.\n\nGracias por confiar en ${EMPRESA.nombre || 'VAROMA'}`);
       limpiar();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('Error al enviar:', err);
-      alert('<i class="fas fa-times-circle"></i> Error al enviar: ' + err.message);
+      mostrarNotificacion('<i class="fas fa-times-circle"></i> Error al enviar: ' + err.message);
     }
   }
 
   // ============ CLIENTE: VER SUS PRESUPUESTOS ============
   async function verMisPresupuestos() {
     if (esInvitado) {
-      alert('<i class="fa-solid fa-circle-user"></i> Como invitado no tenés historial. Creá una cuenta para guardar tus presupuestos.');
+      mostrarNotificacion('<i class="fa-solid fa-circle-user"></i> Como invitado no tenés historial. Creá una cuenta para guardar tus presupuestos.');
       return;
     }
     if (!currentUser) {
-      alert('<i class="fa-solid fa-triangle-exclamation"></i> Debés iniciar sesión para ver tus presupuestos');
+      mostrarNotificacion('<i class="fa-solid fa-triangle-exclamation"></i> Debés iniciar sesión para ver tus presupuestos');
       return;
     }
 
