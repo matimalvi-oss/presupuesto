@@ -42,24 +42,6 @@
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-
-function mostrarNotificacion(mensaje, tipo = 'info') {
-  // Remover notificaciones anteriores
-  const notificacionesExistentes = document.querySelectorAll('.notification');
-  notificacionesExistentes.forEach(n => n.remove());
-  
-  const notif = document.createElement('div');
-  notif.className = `notification ${tipo}`;
-  notif.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'times-circle' : 'info-circle'}"></i> ${mensaje}`;
-  
-  document.body.appendChild(notif);
-  
-  // Auto-eliminar después de 4 segundos
-  setTimeout(() => {
-    notif.style.animation = 'slideIn 0.3s ease-out reverse';
-    setTimeout(() => notif.remove(), 300);
-  }, 4000);
-}
     
 .notification.success {
   background: linear-gradient(135deg, #4caf50, #45a049);
@@ -596,6 +578,25 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
 
   let currentUser = null;
   let esInvitado = false;
+
+  // ============ NOTIFICACIONES ============
+  function mostrarNotificacion(mensaje, tipo = 'info') {
+  // Remover notificaciones anteriores
+  const notificacionesExistentes = document.querySelectorAll('.notification');
+  notificacionesExistentes.forEach(n => n.remove());
+  
+  const notif = document.createElement('div');
+  notif.className = `notification ${tipo}`;
+  notif.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'times-circle' : 'info-circle'}"></i> ${mensaje}`;
+  
+  document.body.appendChild(notif);
+  
+  // Auto-eliminar después de 4 segundos
+  setTimeout(() => {
+    notif.style.animation = 'slideIn 0.3s ease-out reverse';
+    setTimeout(() => notif.remove(), 300);
+  }, 4000);
+}
 
   // ============ DATOS DE EMPRESA ============
   const EMPRESA_DEFAULT = {
