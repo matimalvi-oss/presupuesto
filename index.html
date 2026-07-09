@@ -756,7 +756,7 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
     if (esInvitado) {
       userEmailEl.innerHTML = '<i class="fas fa-user"></i> Invitado';
     } else if (currentUser) {
-      userEmailEl.innerHTML = '<i class="fas fa-user"></i>'  + currentUser.email;
+      userEmailEl.innerHTML = '<i class="fas fa-user"></i> '  + currentUser.email;
     }
 
     // Mostrar botón "Mis Presupuestos" solo si está logueado
