@@ -577,7 +577,7 @@
       <div class="user-section no-print" id="userBadge">
         <div class="user-info">
           <span id="userEmail">usuario@email.com</span>
-          <span class="version-tag" id="versionTag">Julio 2026</span>
+          <span class="version-tag" id="versionTag"></span>
         </div>
         <button class="btn-logout" onclick="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
       </div>
@@ -813,8 +813,24 @@ const ADMIN_EMAILS = [
     aplSimple: 10000, aplComple: 50000,
     pilar: 300000,
   };
+
+    function obtenerMesActual() {
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const hoy = new Date();
+    return meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+  }
+  function actualizarEtiquetas() {
+    document.querySelectorAll('[data-price]').forEach(el => {
+      const key = el.getAttribute('data-price');
+      if (PRECIOS[key] !== undefined) el.textContent = fmt(PRECIOS[key]);
+    });
+    document.getElementById('versionTag').textContent = VERSION;
+  }
   let PRECIOS = JSON.parse(localStorage.getItem('preciosAAIERIC')) || {...PRECIOS_DEFAULT};
-  let VERSION = localStorage.getItem('versionAAIERIC') || 'Junio 2026';
+  let VERSION = localStorage.getItem('versionAAIERIC') || obtenerMesActual();
 
   const ETIQUETAS = {
     visita: "Visita básica", urgencia: "Visita de urgencia", cabNuevo1: "Cableado/recableado por boca",
@@ -1090,6 +1106,14 @@ const ADMIN_EMAILS = [
     aplicarConfigEmpresa();
   }
 
+  function obtenerMesActual() {
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const hoy = new Date();
+    return meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+  }
   function actualizarEtiquetas() {
     document.querySelectorAll('[data-price]').forEach(el => {
       const key = el.getAttribute('data-price');
