@@ -782,7 +782,6 @@ const ADMIN_EMAILS = [
   // Estado de la app
   let currentUser = null;
   let esAdmin = false;
-  let esInvitado = false;
 
   // ============ DATOS DE EMPRESA ============
   const EMPRESA_DEFAULT = {
@@ -855,7 +854,6 @@ const ADMIN_EMAILS = [
       const cred = await auth.signInWithEmailAndPassword(email, password);
       currentUser = cred.user;
       esAdmin = ADMIN_EMAILS.includes(cred.user.email);
-      esInvitado = false;
       mostrarApp();
     } catch (err) {
       let msg = '❌ Error al ingresar';
@@ -911,7 +909,6 @@ const ADMIN_EMAILS = [
       });
       currentUser = cred.user;
       esAdmin = false;
-      esInvitado = false;
       successEl.textContent = '✅ Cuenta creada. Ingresando...';
       successEl.style.display = 'block';
       setTimeout(() => mostrarApp(), 1000);
@@ -985,7 +982,6 @@ const ADMIN_EMAILS = [
     if (user) {
       currentUser = user;
       esAdmin = ADMIN_EMAILS.includes(user.email);
-      esInvitado = false;
       mostrarApp();
     }
     // Si no hay usuario, se queda en la pantalla de login
