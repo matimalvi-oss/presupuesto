@@ -576,7 +576,7 @@
           <span id="userEmail">usuario@email.com</span>
           <span class="version-tag" id="versionTag">Julio 2026</span>
         </div>
-        <button class="btn-logout" onclick="cerrarSesion()">🚪 Salir</button>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
       </div>
     </div>
   </header>
@@ -584,7 +584,7 @@
   <div class="content">
     <!-- DATOS CLIENTE -->
     <div class="section">
-      <h2>Datos</h2>
+      <h2><i class="fa-solid fa-user"></i>Datos</h2>
       <div class="field"><label>Nombre completo:</label><input type="text" id="clienteNombre"></div>
       <div class="field"><label>Dirección de obra:</label><input type="text" id="clienteDireccion"></div>
       <div class="field"><label>Teléfono:</label><input type="tel" id="clienteTel"></div>
@@ -593,7 +593,7 @@
 
     <!-- MANTENIMIENTO -->
     <div class="section">
-      <h2>Mantenimiento</h2>
+      <h2><i class="fa-solid fa-screwdriver-wrench"></i>Mantenimiento</h2>
       <div class="field"><label>Visita ocular</label><label>Sin costo</label></div>
       <div class="field"><label>Visita básica (mínimo) <span class="price-hint" data-price="visita"></span></label><input type="checkbox" id="visita" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_visita">$0</span></div>
       <div class="field"><label>Visita de urgencia <span class="price-hint" data-price="urgencia"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Lun-Vie desde 20:00hs; Sáb/Dom/Feriados 24hs</small></label><input type="checkbox" id="urgencia" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_urgencia">$0</span></div>
@@ -602,7 +602,7 @@
 
     <!-- OBRA -->
     <div class="section">
-      <h2>Obra</h2>
+      <h2><i class="fa-solid fa-helmet-safety"></i>Obra</h2>
       <div class="field"><label>Boca embutida <span class="price-hint" data-price="bocaEmb"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Especificar el N° de bocas</small></label><input type="number" id="bocaEmb" value="0" min="0" placeholder="N° bocas"><span class="subtotal" id="st_bocaEmb">$0</span></div>
       <div class="field"><label>Boca vista <span class="price-hint" data-price="bocaVis"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Especificar el N° de bocas</small></label><input type="number" id="bocaVis" value="0" min="0" placeholder="N° bocas"><span class="subtotal" id="st_bocaVis">$0</span></div>
       <div class="field"><label>Presupuesto de materiales y croquis <span class="price-hint" data-price="materialesPresupuesto"></span><br><small style="color:#666;font-size:0.8em;font-weight:normal">Se descuenta al aceptar el presupuesto</small></label><input type="checkbox" id="materialesPresupuesto" style="width:20px;height:20px;margin-right:10px"><span class="subtotal" id="st_materialesPresupuesto">$0</span></div>
@@ -616,7 +616,7 @@
 
     <!-- TRABAJOS PERSONALIZADOS -->
     <div class="section" style="border-left-color:#9c27b0">
-      <h2>Trabajos Personalizados</h2>
+      <h2><i class="fa-solid fa-sliders"></i>Trabajos Personalizados</h2>
       <p style="color:#666;font-size:0.85em;margin-bottom:15px">Agregá trabajos específicos que no estén en la lista anterior</p>
       <div id="trabajosPersonalizados"></div>
       <button class="btn-secondary" onclick="agregarTrabajo()" style="background:#9c27b0;margin-top:10px"> Agregar Trabajo</button>
@@ -624,7 +624,7 @@
 
     <!-- OBSERVACIONES -->
     <div class="section" style="border-left-color:#2196f3">
-      <h2>Observaciones</h2>
+      <h2><i class="fa-solid fa-message"></i>Observaciones</h2>
       <div class="field" style="flex-direction:column;align-items:stretch">
         <label style="min-width:auto;margin-bottom:8px">Contanos más detalles sobre tu proyecto:</label>
         <textarea id="observaciones" placeholder="Podés comentarnos un poco sobre lo que necesitás o si tenés algún pedido en especial. Ej: Trabajo en horario nocturno, respetar plantas del jardín, etc." style="width:100%;min-height:100px;padding:12px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:0.95em;resize:vertical"></textarea>
@@ -639,11 +639,11 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn-send" onclick="enviarPresupuesto()">📤 Solicitar Presupuesto</button>
-      <button class="btn-print" onclick="imprimir()">🖨️ Imprimir / PDF</button>
-      <button class="btn-view" onclick="verMisPresupuestos()"> Mis Presupuestos</button>
-      <button class="btn-admin no-print" id="btnAdmin" onclick="abrirAdmin()" style="display:none">⚙️ Admin</button>
-      <button class="btn-clear" onclick="limpiar()">🗑️ Limpiar</button>
+      <button class="btn-send" onclick="enviarPresupuesto()"><i class="fa-solid fa-paper-plane"></i> Solicitar Presupuesto</button>
+      <button class="btn-print" onclick="imprimir()"><i class="fa-solid fa-print"></i> Imprimir / PDF</button>
+      <button class="btn-view" onclick="verMisPresupuestos()"><i class="fa-solid fa-clipboard-list"></i> Mis Presupuestos</button>
+      <button class="btn-admin no-print" id="btnAdmin" onclick="abrirAdmin()" style="display:none"><i class="fa-solid fa-user-gear"></i> Admin</button>
+      <button class="btn-clear" onclick="limpiar()"><i class="fa-solid fa-eraser"></i> Limpiar</button>
     </div>
   </div>
 </div>
@@ -652,25 +652,25 @@
 <div class="modal-overlay" id="adminModal">
   <div class="modal">
     <div class="modal-header">
-      <h2>⚙️ Panel de Administración</h2>
+      <h2><i class="fa-solid fa-gear"></i> Panel de Administración</h2>
       <button class="close-btn" onclick="cerrarAdmin()">✕</button>
     </div>
     <div class="modal-body">
       <div class="admin-tabs">
-        <button class="tab-btn active" onclick="cambiarTab(event,'tab-recibidos')"> Todos los Presupuestos</button>
-        <button class="tab-btn" onclick="cambiarTab(event,'tab-brand')">🏢 Mi Empresa</button>
-        <button class="tab-btn" onclick="cambiarTab(event,'tab-edit')">✏️ Precios</button>
-        <button class="tab-btn" onclick="cambiarTab(event,'tab-backup')">💾 Backup</button>
+        <button class="tab-btn active" onclick="cambiarTab(event,'tab-recibidos')"><i class="fa-solid fa-box-archive"></i> Todos los Presupuestos</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-brand')"><i class="fa-solid fa-building"></i> Mi Empresa</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-edit')"><i class="fa-solid fa-pen-to-square"></i> Precios</button>
+        <button class="tab-btn" onclick="cambiarTab(event,'tab-backup')"><i class="fa-solid fa-cloud-arrow-down"></i> Backup</button>
       </div>
 
       <div class="tab-content active" id="tab-recibidos">
-        <div class="alert alert-info">📥 Presupuestos recibidos de todos los clientes</div>
+        <div class="alert alert-info"><i class="fa-solid fa-inbox"></i> Presupuestos recibidos de todos los clientes</div>
         <div id="listaPresupuestos">Cargando...</div>
       </div>
 
       <div class="tab-content" id="tab-brand">
         <div class="alert alert-info"> Configurá los datos de tu empresa.</div>
-        <h3 style="margin-bottom:10px;color:#444">🖼️ Logo</h3>
+        <h3 style="margin-bottom:10px;color:#444"><i class="fa-solid fa-image"></i> Logo</h3>
         <div class="logo-upload-area">
           <div class="logo-preview" id="logoPreview"><div class="placeholder">Sin logo</div></div>
           <div class="logo-controls">
