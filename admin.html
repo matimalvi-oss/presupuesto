@@ -537,8 +537,6 @@
       <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password">
       <button onclick="iniciarSesion()" class="btn-login">Ingresar</button>
       <p id="loginError" class="login-error" style="display:none"></p>
-      <div class="login-divider">— o —</div>
-      <span class="guest-link" onclick="continuarComoInvitado()">Continuar como invitado (sin guardar historial)</span>
     </div>
 
     <!-- REGISTRO -->
@@ -927,23 +925,15 @@ const ADMIN_EMAILS = [
     }
   }
 
-  function continuarComoInvitado() {
-    currentUser = null;
-    esAdmin = false;
-    esInvitado = true;
-    mostrarApp();
-  }
-
   async function cerrarSesion() {
     if (!confirm('¿Cerrar sesión?')) return;
     try {
-      if (!esInvitado) await auth.signOut();
+      await auth.signOut();
     } catch (err) {
       console.error(err);
     }
     currentUser = null;
     esAdmin = false;
-    esInvitado = false;
     location.reload();
   }
 
@@ -953,9 +943,7 @@ const ADMIN_EMAILS = [
     
     // Mostrar email del usuario
     const userEmailEl = document.getElementById('userEmail');
-    if (esInvitado) {
-      userEmailEl.textContent = '👤 Invitado';
-    } else if (currentUser) {
+    if (currentUser) {
       userEmailEl.textContent = (esAdmin ? '👑 ' : '👤 ') + currentUser.email;
     }
 
@@ -1290,8 +1278,8 @@ async function enviarPresupuesto() {
   if (total === 0) { if (!confirm('No seleccionaste ningún servicio. ¿Enviar igual?')) return; }
 
   // Generar userId único para invitados
-  const userId = esInvitado ? 'invitado_' + generarId() + '_' + Date.now() : (currentUser ? currentUser.uid : 'anonimo_' + Date.now());
-
+  const userId = currentUser ? currentUser.uid : 'anonimo_' + Date.now();
+  
   const datos = {
     clienteNombre: cliente,
     clienteDireccion: document.getElementById('clienteDireccion').value,
@@ -1304,8 +1292,7 @@ async function enviarPresupuesto() {
     estado: 'pendiente',
     version: VERSION,
     userId: userId,
-    userEmail: esInvitado ? 'invitado@temp.com' : (currentUser ? currentUser.email : 'anonimo@temp.com'),
-    esInvitado: esInvitado
+    userEmail: currentUser ? currentUser.email : 'anonimo@temp.com'
   };
 
   for (const key in PRECIOS) {
@@ -1396,10 +1383,6 @@ async function enviarPresupuesto() {
 
   // ============ CLIENTE: VER SUS PRESUPUESTOS ============
   async function verMisPresupuestos() {
-    if (esInvitado) {
-      alert('ℹ️ Como invitado no tenés historial. Creá una cuenta para guardar tus presupuestos.');
-      return;
-    }
     if (!currentUser) {
       alert('️ Debés iniciar sesión para ver tus presupuestos');
       return;
