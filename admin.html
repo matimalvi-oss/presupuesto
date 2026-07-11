@@ -720,7 +720,7 @@
 
   .firma-linea {
     border-top: 1px solid #333;
-    margin: 40px 10px 8px 10px;
+    margin: 60px 10px 2px 10px;
     height: 40px;
   }
 
@@ -1435,9 +1435,9 @@ function generarImpresion(detallesMO, totalMO, totalTP = 0) {
           ${EMPRESA.nombre ? `<h1>${EMPRESA.nombre}</h1>` : ''}
           ${EMPRESA.slogan ? `<p><em>${EMPRESA.slogan}</em></p>` : ''}
           <p style="font-size:0.8em;color:#666">
-            ${EMPRESA.direccion ? ` ${EMPRESA.direccion}` : ''}
-            ${EMPRESA.telefono ? ` · 📞 ${EMPRESA.telefono}` : ''}
-            ${EMPRESA.email ? ` · ✉️ ${EMPRESA.email}` : ''}
+            ${EMPRESA.direccion ? `<i class="fa-solid fa-map-pin"></i> ${EMPRESA.direccion}` : ''}
+            ${EMPRESA.telefono ? `<i class="fa-solid fa-phone"></i> ${EMPRESA.telefono}` : ''}
+            ${EMPRESA.email ? `<i class="fa-solid fa-envelope"></i> ${EMPRESA.email}` : ''}
           </p>
           ${EMPRESA.cuit ? `<p style="font-size:0.75em">CUIT: ${EMPRESA.cuit}</p>` : ''}
         </div>
