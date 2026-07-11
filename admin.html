@@ -1186,7 +1186,7 @@ function calcular() {
       ${tel ? `<p><strong>Teléfono:</strong> ${tel}</p>` : ''}`;
 
     if (detallesMO.length > 0) {
-      html += `<h2> Mano de Obra</h2>
+      html += `<h2><i class="fa-solid fa-helmet-safety"></i> Mano de Obra</h2>
         <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasMO}</tbody></table>`;
     }
 
@@ -1200,7 +1200,7 @@ function calcular() {
         }
       });
       if (filasTP) {
-        html += `<h2>🛠️ Trabajos Personalizados</h2>
+        html += `<h2><i class="fa-solid fa-screwdriver-wrench"></i> Trabajos Personalizados</h2>
           <table><thead><tr><th>Descripción</th><th style="text-align:center">Cantidad</th><th style="text-align:right">Precio Unit.</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${filasTP}</tbody></table>`;
       }
     }
@@ -1208,7 +1208,7 @@ function calcular() {
     const observaciones = document.getElementById('observaciones').value.trim();
     if (observaciones) {
       html += `<div style="margin-top:20px;padding:15px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:6px">
-        <h3 style="color:#e65100;margin-bottom:8px;font-size:1em">💬 Observaciones</h3>
+        <h3 style="color:#e65100;margin-bottom:8px;font-size:1em"><i class="fa-solid fa-message"></i> Observaciones</h3>
         <p style="white-space:pre-wrap;color:#333;font-size:0.9em;line-height:1.5">${observaciones.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
       </div>`;
     }
